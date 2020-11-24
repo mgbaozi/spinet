@@ -1,0 +1,11 @@
+name: simple-task-example
+inputs:
+  - trigger: SimpleInput
+    period: 30
+    variables:
+      content:
+        type: string
+        value: $.content
+outputs:
+  - trigger: SimpleOutput
+    content: $.content
