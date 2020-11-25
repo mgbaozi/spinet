@@ -1,11 +1,17 @@
 name: simple-task-example
-inputs:
-  - trigger: SimpleInput
+
+dictionary:
+  content: ""
+
+triggers:
+  - type: Timer
     period: 30
-    variables:
-      content:
-        type: string
-        value: $.content
+
+inputs:
+  - app: Simple
+    mapper:
+      fruit: "$.content"
+
 outputs:
-  - trigger: SimpleOutput
-    content: $.content
+  - app: Simple
+    content: fruit

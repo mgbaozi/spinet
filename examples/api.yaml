@@ -1,0 +1,25 @@
+name: get-data-from-api
+triggers:
+  # Timer / Hook / Task / None
+  - type: Timer
+    period: 60
+dictionary:
+  fruit: ""
+inputs:
+  - app: API
+    url: http://127.0.0.1:4983/api/test
+    headers:
+      - name: Authorization
+        value: example-token
+    mapper:
+      fruit: "$.content"
+outputs:
+  - app: API
+    url: http://127.0.0.1:4983/api/test
+    method: POST
+    headers:
+      - name: Authorization
+        value: example-token
+    json:
+      thing: fruit
+    # template: '{"thing":"{{fruit}}"}'

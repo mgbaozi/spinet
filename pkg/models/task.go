@@ -6,6 +6,14 @@ type Context struct {
 	Variables map[string]string
 }
 
+func (ctx *Context) GetVariable(name string) string {
+	return ctx.Variables[name]
+}
+
+func (ctx *Context) SetVariable(name, value string) {
+	ctx.Variables[name] = value
+}
+
 func NewContext() Context {
 	return Context{
 		Variables: make(map[string]string),

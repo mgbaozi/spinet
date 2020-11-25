@@ -19,11 +19,14 @@ func (SimpleInput) TriggerType() string{
 	return TriggerTypeActive
 }
 
-func (SimpleInput) Execute(ctx *Context, data interface{}) error {
+func (SimpleInput) getExampleData() string {
 	rand.Seed(time.Now().Unix())
-	contents := []string{"apple", "orange", "banana"}
 	index := rand.Int() % 3
-	example := fmt.Sprintf(`{"content": "%s"}`, contents[index])
-	ctx.Variables["content"] = contents[index]
+	contents := []string{"apple", "orange", "banana"}
+	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
+}
+
+func (input SimpleInput) Execute(ctx *Context, data interface{}) error {
+	example := input.getExampleData()
 	return json.Unmarshal([]byte(example), data)
 }
