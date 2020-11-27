@@ -1,26 +1,36 @@
 package models
 
-const (
-	ServiceTypeInput = "input"
-	ServiceTypeOutput = "output"
-)
+type Context struct {
+	Dictionary map[string]interface{}
+}
 
-const (
-	TriggerTypeActive = "active"
-	TriggerTypePassive = "passive"
-)
+type Task struct {
+	Name string
+	Inputs []Input
+	Outputs []Output
+	Context Context
+}
 
-const (
-	InputTypeSource = "source"
-	InputTypeMetric = "metric"
-	InputTypeAPI = "api"
-	InputTypeHook = "hook"
-	InputTypeHistory = "history"
-)
+type Trigger interface {
+	Triggered() <-chan struct{}
+}
 
-const (
-	OutputTypeAlter = "alert"
-	OutputTypeAPI = "api"
-	OutputTypeEvent = "event"
-	OutputTypeData = "data"
-)
+type App interface {
+	Options() map[string]interface{}
+	SetOptions(options map[string]interface{})
+}
+
+type Value struct {
+	Type string
+	Value interface{}
+}
+
+type Condition struct {
+	Operator string
+	Type string
+	Conditions []Condition
+}
+
+type Comparator interface {
+	Do(ctx *Context, values ...Value) bool
+}

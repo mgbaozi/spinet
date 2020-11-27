@@ -19,7 +19,7 @@ func (SimpleOutput) TriggerType() string {
 }
 
 func (out SimpleOutput) Execute(ctx *Context, data interface{}) error {
-	_, err := fmt.Println("Logging output:", out.RenderContent(ctx.Variables))
+	_, err := fmt.Println("Logging output:", out.RenderContent(ctx.Dictionary))
 	return err
 }
 

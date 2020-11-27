@@ -1,25 +1,53 @@
 name: get-data-from-api
 triggers:
-  # Timer / Hook / Task / None
-  - type: Timer
-    period: 60
+  # timer / hook / task / none
+  - type: timer
+    options:
+      period: 60
 dictionary:
-  fruit: ""
+  token: example-token
 inputs:
-  - app: API
-    url: http://127.0.0.1:4983/api/test
-    headers:
-      - name: Authorization
-        value: example-token
-    mapper:
+  - app: api
+    options:
+      url: http://127.0.0.1:4983/api/examples/fruit
+      headers:
+        - name: Authorization
+          value: "$.token"
+    dictionary:
       fruit: "$.content"
-outputs:
+    inputs: []
   - app: API
-    url: http://127.0.0.1:4983/api/test
-    method: POST
-    headers:
-      - name: Authorization
-        value: example-token
-    json:
-      thing: fruit
-    # template: '{"thing":"{{fruit}}"}'
+    options:
+      url: http://127.0.0.1:4983/api/examples/weight
+      headers:
+        - name: Authorization
+          value: "$.token"
+    dictionary:
+      weight: "$.data"
+conditions:
+    # and / or
+  - operator: and
+    # eq / ne / gt / lt / ge / le / contains / javascript
+    comparator: eq
+    values:
+      - type: variable
+        value: "fruit"
+      - type: constant
+        value: "apple"
+    conditions: []
+  - operator: and
+    comparator: contains
+    values:
+      - "$.weight"
+      - 10
+outputs:
+  - app: api
+    options:
+      url: http://127.0.0.1:4983/api/test
+      method: POST
+      headers:
+        - name: Authorization
+          value: "$.token"
+      json:
+        thing: fruit
+      # template: '{"thing":"{{fruit}}"}'
