@@ -1,4 +1,5 @@
-name: get-data-from-api
+name: get-data-from-api-simple
+type: simple
 triggers:
   # timer / hook / task / none
   - type: timer
@@ -13,30 +14,21 @@ inputs:
       headers:
         - name: Authorization
           value: "$.token"
-    dictionary:
-      fruit: "$.content"
-    inputs: []
-  - app: api 
+    conditions:
+      - operator: eq
+        values:
+          - "$.fruit"
+          - "apple"
+  - app: api
     options:
       url: http://127.0.0.1:4983/api/examples/weight
       headers:
         - name: Authorization
           value: "$.token"
-    dictionary:
-      weight: "$.data"
-conditions:
-    # and / or / eq / ne / gt / lt / ge / le / contains / exist / javascript
-  - operator: and
     conditions:
-      - operator: eq
-        values:
-          - type: variable
-            value: "fruit"
-          - type: constant
-            value: "apple"
       - operator: contains
         values:
-          - "$.weight"
+          - "$.data"
           - 10
 outputs:
   - app: api
@@ -47,4 +39,4 @@ outputs:
         - name: Authorization
           value: "$.token"
       json:
-        thing: "$.fruit"
+        message: ok

@@ -1,17 +1,19 @@
 name: simple-task-example
 
-dictionary:
-  content: ""
-
 triggers:
-  - type: Timer
-    period: 30
+  - type: timer
+    options:
+      period: 10
 
 inputs:
-  - app: Simple
-    mapper:
-      fruit: "$.content"
+  - app: simple
+    conditions:
+      - operator: eq
+        values:
+          - "$.content"
+          - "apple"
 
 outputs:
-  - app: Simple
-    content: fruit
+  - app: simple
+    options:
+      content: ok

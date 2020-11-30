@@ -1,26 +1,26 @@
 package models
 
 const (
-	ServiceTypeInput = "input"
+	ServiceTypeInput  = "input"
 	ServiceTypeOutput = "output"
 )
 
 const (
-	TriggerTypeActive = "active"
+	TriggerTypeActive  = "active"
 	TriggerTypePassive = "passive"
 )
 
 const (
-	InputTypeSource = "source"
-	InputTypeMetric = "metric"
-	InputTypeAPI = "api"
-	InputTypeHook = "hook"
+	InputTypeSource  = "source"
+	InputTypeMetric  = "metric"
+	InputTypeAPI     = "api"
+	InputTypeHook    = "hook"
 	InputTypeHistory = "history"
 )
 
 const (
 	OutputTypeAlter = "alert"
-	OutputTypeAPI = "api"
+	OutputTypeAPI   = "api"
 	OutputTypeEvent = "event"
-	OutputTypeData = "data"
+	OutputTypeData  = "data"
 )

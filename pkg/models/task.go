@@ -2,6 +2,11 @@ package models
 
 import "fmt"
 
+type Context struct {
+	Dictionary map[string]interface{}
+	Data       map[string]interface{}
+}
+
 func (ctx *Context) GetVariable(name string) interface{} {
 	return ctx.Dictionary[name]
 }
@@ -16,30 +21,40 @@ func NewContext() Context {
 	}
 }
 
-func (task *Task) Execute() {
-	for _, input := range task.Inputs {
-		switch input.TriggerType() {
-		case TriggerTypeActive:
-			fmt.Println("Active trigger")
-			var data map[string]interface{}
-			err := input.Execute(&task.Context, &data)
-			if err != nil {
-				fmt.Println(err)
+type Task struct {
+	Name     string
+	Triggers []Trigger
+	Inputs   []Input
+	Outputs  []Output
+	Context  Context
+}
+
+func (task *Task) Start() {
+	for _, trigger := range task.Triggers {
+		for {
+			select {
+			case <-trigger.Triggered():
+				task.Execute()
 			}
-		case TriggerTypePassive:
-			fmt.Println("Passive trigger")
 		}
 	}
-	for _, output := range task.Outputs {
-		switch output.TriggerType() {
-		case TriggerTypeActive:
-			fmt.Println("Active trigger")
-			err := output.Execute(&task.Context, nil)
-			if err != nil {
-				fmt.Println(err)
-			}
-		case TriggerTypePassive:
-			fmt.Println("Passive trigger")
+
+}
+
+func (task *Task) Execute() {
+	for _, input := range task.Inputs {
+		app := input.App
+		fmt.Println("Running app:", app.Name())
+		var data map[string]interface{}
+		err := app.Execute(AppModeInput, &task.Context, &data)
+		if err != nil {
+			fmt.Println(err)
 		}
+		task.Context.Data[app.Name()] = data
+		ProcessAppConditions(input.Conditions, &task.Context)
+	}
+	for _, output := range task.Outputs {
+		app := output.App
+		app.Execute(AppModeOutPut, &task.Context, nil)
 	}
 }
