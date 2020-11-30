@@ -75,14 +75,14 @@ func (value Value) Equals(right Value) bool {
 	return true
 }
 
-func (value Value) Extract(variables map[string]interface{}) (interface{}, error) {
+func (value Value) Extract(variables interface{}) (interface{}, error) {
 	if value.Type == ValueTypeConstant {
 		return value.Value, nil
 	}
 	if str, ok := value.Value.(string); ok {
-		return variables[str], nil
+		return variables.(map[string]interface{})[str], nil
 	} else if keys, ok := value.Value.([]interface{}); ok {
-		var result interface{} = variables
+		var result = variables
 		for _, key := range keys {
 			if str, ok := key.(string); ok {
 				if res, ok := result.(map[string]interface{}); ok {

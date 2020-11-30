@@ -42,6 +42,7 @@ func (task *Task) Start() {
 }
 
 func (task *Task) Execute() {
+	var inputResults []interface{}
 	for _, input := range task.Inputs {
 		app := input.App
 		fmt.Println("Running app:", app.Name())
@@ -51,10 +52,18 @@ func (task *Task) Execute() {
 			fmt.Println(err)
 		}
 		task.Context.Data[app.Name()] = data
-		ProcessAppConditions(input.Conditions, &task.Context)
+		res, err := ProcessAppConditions(app.Name(), input.Conditions, &task.Context)
+		if err != nil {
+			fmt.Println(err)
+		}
+		inputResults = append(inputResults, res)
+	}
+	if res, err := (And{}).Do(inputResults); err != nil || !res {
+		fmt.Println("Conditions is not true, skip output...")
+		return
 	}
 	for _, output := range task.Outputs {
 		app := output.App
-		app.Execute(AppModeOutPut, &task.Context, nil)
+		_ = app.Execute(AppModeOutPut, &task.Context, nil)
 	}
 }
