@@ -42,16 +42,25 @@ var fromString = map[string]logrus.Level{
 	"tracing": TraceLevel,
 }
 
-const defaultLogLevel = TraceLevel
+const defaultLogLevel = WarnLevel
 
 func init() {
+	log = New()
+	log.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+}
 
-	log = logrus.New()
+func New() *logrus.Logger {
+	logger := logrus.New()
 
-	log.SetReportCaller(true)
+	logger.SetLevel(defaultLogLevel)
+	logger.SetReportCaller(true)
 
-	log.SetOutput(os.Stdout)
-	log.SetLevel(defaultLogLevel)
+	logger.SetOutput(os.Stdout)
+	return logger
+}
+
+func UseJsonFormatter(pretty bool) {
+	log.SetFormatter(&logrus.JSONFormatter{PrettyPrint: pretty})
 }
 
 func SetLevel(level logrus.Level) {
