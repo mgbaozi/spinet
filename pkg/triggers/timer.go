@@ -1,7 +1,7 @@
 package triggers
 
 import (
-	"fmt"
+	"github.com/mgbaozi/spinet/pkg/logging"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"time"
 )
@@ -21,15 +21,15 @@ func NewTimerOptions(options map[string]interface{}) TimerOptions {
 }
 
 type Timer struct {
-	Options TimerOptions
+	TimerOptions
 	ch      chan struct{}
 	running bool
 }
 
 func NewTimer(options map[string]interface{}) *Timer {
 	return &Timer{
-		Options: NewTimerOptions(options),
-		ch:      make(chan struct{}),
+		TimerOptions: NewTimerOptions(options),
+		ch:           make(chan struct{}),
 	}
 }
 
@@ -42,11 +42,11 @@ func (*Timer) Name() string {
 }
 
 func (timer *Timer) run() {
-	ch := time.Tick(time.Duration(timer.Options.Period) * time.Second)
-	fmt.Println("Start timer...")
+	ch := time.Tick(time.Duration(timer.Period) * time.Second)
+	logging.Info("Start timer with period: %d", timer.Period)
 	for {
 		_ = <-ch
-		fmt.Println("Tick!")
+		logging.Debug("Tick!")
 		timer.ch <- struct{}{}
 	}
 }

@@ -1,5 +1,7 @@
 name: simple-task-example
 
+dictionary:
+  content: simple-token
 triggers:
   - type: timer
     options:
@@ -7,6 +9,7 @@ triggers:
 
 inputs:
   - app: simple
+
     conditions:
       - operator: eq
         values:
@@ -16,4 +19,4 @@ inputs:
 outputs:
   - app: simple
     options:
-      content: ok
+      content: "$.content"

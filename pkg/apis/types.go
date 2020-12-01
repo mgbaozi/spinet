@@ -26,13 +26,15 @@ type Condition struct {
 
 type Input struct {
 	App        string                 `json:"app" yaml:"app"`
+	Options    map[string]interface{} `json:"options" yaml:"options"`
 	Dictionary map[string]interface{} `json:"dictionary" yaml:"dictionary"`
 	Conditions []Condition            `json:"conditions" yaml:"conditions"`
 	Inputs     []Input                `json:"inputs" yaml:"inputs"`
 }
 
 type Output struct {
-	App        string      `json:"app" yaml:"app"`
-	Conditions []Condition `json:"conditions" yaml:"conditions"`
-	Outputs    []Output    `json:"outputs" yaml:"outputs"`
+	App        string                 `json:"app" yaml:"app"`
+	Options    map[string]interface{} `json:"options" yaml:"options"`
+	Conditions []Condition            `json:"conditions" yaml:"conditions"`
+	Outputs    []Output               `json:"outputs" yaml:"outputs"`
 }

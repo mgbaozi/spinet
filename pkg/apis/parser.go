@@ -3,6 +3,7 @@ package apis
 import (
 	_ "github.com/mgbaozi/spinet/pkg/apps"
 	"github.com/mgbaozi/spinet/pkg/models"
+	_ "github.com/mgbaozi/spinet/pkg/operators"
 	_ "github.com/mgbaozi/spinet/pkg/triggers"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -57,13 +58,46 @@ func (trigger Trigger) Parse() models.Trigger {
 }
 
 func (input Input) Parse() models.Input {
-	return models.Input{}
+	name := input.App
+	options := input.Options
+	var conditions []models.Condition
+	for _, condition := range input.Conditions {
+		conditions = append(conditions, condition.Parse())
+	}
+	return models.Input{
+		App: models.NewApp(name, options),
+		// TODO: Dictionary
+		Conditions: conditions,
+	}
 }
 
 func (condition Condition) Parse() models.Condition {
-	return models.Condition{}
+	name := condition.Operator
+	var conditions []models.Condition
+	for _, item := range condition.Conditions {
+		conditions = append(conditions, item.Parse())
+	}
+	var values []models.Value
+	for _, value := range condition.Values {
+		values = append(values, models.ParseValue(value))
+	}
+	return models.Condition{
+		Operator:   models.NewOperator(name),
+		Conditions: conditions,
+		Values:     values,
+	}
 }
 
 func (output Output) Parse() models.Output {
-	return models.Output{}
+	name := output.App
+	options := output.Options
+	var conditions []models.Condition
+	for _, condition := range output.Conditions {
+		conditions = append(conditions, condition.Parse())
+	}
+	return models.Output{
+		App: models.NewApp(name, options),
+		// TODO: Dictionary
+		Conditions: conditions,
+	}
 }

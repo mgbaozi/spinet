@@ -1,6 +1,8 @@
 package models
 
-import "fmt"
+import (
+	"github.com/mgbaozi/spinet/pkg/logging"
+)
 
 type Context struct {
 	Dictionary map[string]interface{}
@@ -57,25 +59,25 @@ func (task *Task) Execute() {
 	var inputResults []interface{}
 	for _, input := range task.Inputs {
 		app := input.App
-		fmt.Println("Running app:", app.Name())
+		logging.Info("Running app: %s", app.Name())
 		var data map[string]interface{}
 		err := app.Execute(AppModeInput, &task.Context, &data)
 		if err != nil {
-			fmt.Println(err)
+			logging.Error("Execute app failed: %v", err)
 		}
 		task.Context.AppData[app.Name()] = data
 		res, err := ProcessAppConditions(app.Name(), input.Conditions, &task.Context)
 		if err != nil {
-			fmt.Println(err)
+			logging.Error("Process conditions of app %s failed: %v", err)
 		}
 		inputResults = append(inputResults, res)
 	}
-	if res, err := (And{}).Do(inputResults); err != nil || !res {
-		fmt.Println("Conditions in inputs are not true, skip output...")
+	if res, err := NewOperator("and").Do(inputResults); err != nil || !res {
+		logging.Info("Conditions in inputs are not true, skip output...")
 		return
 	}
 	if res, err := ProcessCommonConditions(task.Conditions, &task.Context); err != nil || !res {
-		fmt.Println("Conditions of task are not true, skip output...")
+		logging.Info("Conditions of task are not true, skip output...")
 		return
 	}
 	for _, output := range task.Outputs {

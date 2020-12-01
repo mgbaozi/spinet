@@ -1,23 +1,26 @@
 package main
 
 import (
+	"github.com/mgbaozi/spinet/pkg/apps"
 	"github.com/mgbaozi/spinet/pkg/models"
-	"github.com/urfave/cli"
+	"github.com/mgbaozi/spinet/pkg/operators"
+	"github.com/mgbaozi/spinet/pkg/triggers"
+	"github.com/urfave/cli/v2"
 )
 
-func core(c *cli.Context) {
+func core(c *cli.Context) error {
 	task := &models.Task{
 		Triggers: []models.Trigger{
-			models.NewTimer(map[string]interface{}{
+			triggers.NewTimer(map[string]interface{}{
 				"period": 10,
 			}),
 		},
 		Inputs: []models.Input{
 			{
-				App: &models.Simple{},
+				App: &apps.Simple{},
 				Conditions: []models.Condition{
 					{
-						Operator: models.EQ{},
+						Operator: operators.EQ{},
 						Values: []models.Value{
 							{Type: "variable", Value: "content"},
 							{Type: "constant", Value: "apple"},
@@ -28,7 +31,7 @@ func core(c *cli.Context) {
 		},
 		Outputs: []models.Output{
 			{
-				App: &models.Simple{
+				App: &apps.Simple{
 					Content: "ok",
 				},
 			},
@@ -36,4 +39,5 @@ func core(c *cli.Context) {
 		Context: models.NewContext(),
 	}
 	task.Start()
+	return nil
 }

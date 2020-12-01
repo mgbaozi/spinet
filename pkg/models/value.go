@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/logging"
 	"strconv"
 	"strings"
 )
@@ -20,27 +21,30 @@ type Value struct {
 }
 
 func ParseValue(content interface{}) Value {
+	logging.Debug("Parse value: %v", content)
 	if str, ok := content.(string); ok {
+		logging.Trace("Value type is string: %s", str)
 		if strings.HasPrefix(str, "$.") {
 			keys := strings.Split(str, ".")
+			logging.Trace("Value is a variable, split keys are: %v", keys)
 			var values []interface{}
-			for _, key := range keys {
-				if num, err := strconv.Atoi(key); err != nil {
+			for _, key := range keys[1:] {
+				if num, err := strconv.Atoi(key); err == nil {
 					values = append(values, num)
 				} else {
 					values = append(values, key)
 				}
 			}
+			logging.Trace("Parsed keys are: %v", values)
 			if len(values) == 1 {
 				return Value{
 					Type:  ValueTypeVariable,
 					Value: values[0],
 				}
-			} else {
-				return Value{
-					Type:  ValueTypeVariable,
-					Value: values,
-				}
+			}
+			return Value{
+				Type:  ValueTypeVariable,
+				Value: values,
 			}
 		}
 	}
@@ -76,12 +80,16 @@ func (value Value) Equals(right Value) bool {
 }
 
 func (value Value) Extract(variables interface{}) (interface{}, error) {
+	logging.Debug("Exacting value with variables: %v %v", value, variables)
 	if value.Type == ValueTypeConstant {
+		logging.Trace("Value is a constant: %v", value.Value)
 		return value.Value, nil
 	}
 	if str, ok := value.Value.(string); ok {
+		logging.Trace("Get value with key: %s", str)
 		return variables.(map[string]interface{})[str], nil
 	} else if keys, ok := value.Value.([]interface{}); ok {
+		logging.Trace("Get value with keys: %v", keys)
 		var result = variables
 		for _, key := range keys {
 			if str, ok := key.(string); ok {

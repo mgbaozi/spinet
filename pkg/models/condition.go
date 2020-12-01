@@ -34,10 +34,10 @@ func ProcessConditions(operator Operator, conditions []Condition, data interface
 }
 
 func ProcessCommonConditions(conditions []Condition, ctx *Context) (bool, error) {
-	return ProcessConditions(And{}, conditions, ctx.Dictionary)
+	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary)
 }
 
 func ProcessAppConditions(app string, conditions []Condition, ctx *Context) (bool, error) {
 	data := ctx.AppData[app]
-	return ProcessConditions(And{}, conditions, data)
+	return ProcessConditions(NewOperator("and"), conditions, data)
 }
