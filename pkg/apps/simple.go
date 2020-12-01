@@ -1,25 +1,16 @@
-package models
+package apps
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/models"
 	"math/rand"
 	"strings"
 	"time"
 )
 
-type AppMode string
-
-const (
-	AppModeInput  AppMode = "input"
-	AppModeOutPut AppMode = "output"
-)
-
-type App interface {
-	Name() string
-	New(options map[string]interface{}) App
-	Modes() []AppMode
-	Execute(mode AppMode, ctx *Context, data interface{}) error
+func init() {
+	models.RegisterApp(&Simple{})
 }
 
 type Simple struct {
@@ -30,7 +21,7 @@ func NewSimple(options map[string]interface{}) *Simple {
 	return &Simple{}
 }
 
-func (*Simple) New(options map[string]interface{}) App {
+func (*Simple) New(options map[string]interface{}) models.App {
 	return NewSimple(options)
 }
 
@@ -38,10 +29,10 @@ func (*Simple) Name() string {
 	return "simple"
 }
 
-func (*Simple) Modes() []AppMode {
-	return []AppMode{
-		AppModeInput,
-		AppModeOutPut,
+func (*Simple) Modes() []models.AppMode {
+	return []models.AppMode{
+		models.AppModeInput,
+		models.AppModeOutPut,
 	}
 }
 
@@ -52,21 +43,21 @@ func (*Simple) getExampleData() string {
 	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
 }
 
-func (simple *Simple) Execute(mode AppMode, ctx *Context, data interface{}) error {
-	if mode == AppModeInput {
+func (simple *Simple) Execute(mode models.AppMode, ctx *models.Context, data interface{}) error {
+	if mode == models.AppModeInput {
 		return simple.ExecuteAsInput(ctx, data)
-	} else if mode == AppModeOutPut {
+	} else if mode == models.AppModeOutPut {
 		return simple.ExecuteAsOutput(ctx, data)
 	}
 	return nil
 }
 
-func (simple *Simple) ExecuteAsInput(ctx *Context, data interface{}) error {
+func (simple *Simple) ExecuteAsInput(ctx *models.Context, data interface{}) error {
 	example := simple.getExampleData()
 	return json.Unmarshal([]byte(example), data)
 }
 
-func (simple *Simple) ExecuteAsOutput(ctx *Context, data interface{}) error {
+func (simple *Simple) ExecuteAsOutput(ctx *models.Context, data interface{}) error {
 	_, err := fmt.Println("Logging output:", simple.RenderContent(ctx.Dictionary))
 	return err
 }

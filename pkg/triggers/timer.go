@@ -1,14 +1,13 @@
-package models
+package triggers
 
 import (
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/models"
 	"time"
 )
 
-type Trigger interface {
-	New(options map[string]interface{}) Trigger
-	Name() string
-	Triggered() <-chan struct{}
+func init() {
+	models.RegisterTrigger(&Timer{})
 }
 
 type TimerOptions struct {
@@ -34,11 +33,11 @@ func NewTimer(options map[string]interface{}) *Timer {
 	}
 }
 
-func (timer *Timer) New(options map[string]interface{}) Trigger {
+func (*Timer) New(options map[string]interface{}) models.Trigger {
 	return NewTimer(options)
 }
 
-func (timer *Timer) Name() string {
+func (*Timer) Name() string {
 	return "timer"
 }
 

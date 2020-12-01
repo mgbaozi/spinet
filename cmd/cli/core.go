@@ -14,7 +14,7 @@ func core(c *cli.Context) {
 		},
 		Inputs: []models.Input{
 			{
-				App: models.Simple{},
+				App: &models.Simple{},
 				Conditions: []models.Condition{
 					{
 						Operator: models.EQ{},
@@ -28,7 +28,7 @@ func core(c *cli.Context) {
 		},
 		Outputs: []models.Output{
 			{
-				App: models.Simple{
+				App: &models.Simple{
 					Content: "ok",
 				},
 			},

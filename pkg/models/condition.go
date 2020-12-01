@@ -38,6 +38,6 @@ func ProcessCommonConditions(conditions []Condition, ctx *Context) (bool, error)
 }
 
 func ProcessAppConditions(app string, conditions []Condition, ctx *Context) (bool, error) {
-	data := ctx.Data[app]
+	data := ctx.AppData[app]
 	return ProcessConditions(And{}, conditions, data)
 }

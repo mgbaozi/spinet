@@ -1,4 +1,5 @@
 package main
+
 import (
 	"os"
 
@@ -10,6 +11,7 @@ func main() {
 	app.Name = "spinet-cli"
 	app.Usage = "Spinet command line tools"
 	app.Commands = []cli.Command{
+		taskCli,
 	}
 	app.Action = core
 	app.Version = "0.0.1"
