@@ -65,8 +65,8 @@ func (input Input) Parse() models.Input {
 		conditions = append(conditions, condition.Parse())
 	}
 	return models.Input{
-		App: models.NewApp(name, options),
-		// TODO: Dictionary
+		App:        models.NewApp(name, options),
+		Dictionary: input.Dictionary,
 		Conditions: conditions,
 	}
 }

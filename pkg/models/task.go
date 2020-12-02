@@ -66,6 +66,7 @@ func (task *Task) Execute() {
 			klog.Errorf("Execute app failed: %v", err)
 		}
 		task.Context.AppData[app.Name()] = data
+		ProcessAppDictionary(app.Name(), input.Dictionary, &task.Context)
 		res, err := ProcessAppConditions(app.Name(), input.Conditions, &task.Context)
 		if err != nil {
 			klog.Errorf("Process conditions of app %s failed: %v", err)

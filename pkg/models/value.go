@@ -9,22 +9,30 @@ import (
 )
 
 type ValueType string
+type ValueSource string
 
 const (
 	ValueTypeConstant ValueType = "constant"
 	ValueTypeVariable ValueType = "variable"
 )
 
+const (
+	ValueSourceNone       ValueSource = ""
+	ValueSourceDictionary ValueSource = "dictionary"
+	ValueSourceApp        ValueSource = "app"
+)
+
 type Value struct {
-	Type  ValueType
-	Value interface{}
+	Type   ValueType
+	Source ValueSource
+	Value  interface{}
 }
 
 func ParseValue(content interface{}) Value {
 	klog.V(4).Infof("Parse value: %v", content)
 	if str, ok := content.(string); ok {
 		klog.V(6).Infof("Value type is string: %s", str)
-		if strings.HasPrefix(str, "$.") {
+		if strings.HasPrefix(str, "$.") || strings.HasPrefix(str, "#.") {
 			keys := strings.Split(str, ".")
 			klog.V(6).Infof("Value is a variable, split keys are: %v", keys)
 			var values []interface{}
@@ -36,27 +44,49 @@ func ParseValue(content interface{}) Value {
 				}
 			}
 			klog.V(6).Infof("Parsed keys are: %v", values)
+			var valueSource ValueSource
+			switch keys[0] {
+			case "#":
+				valueSource = ValueSourceApp
+			case "$":
+				valueSource = ValueSourceDictionary
+			default:
+				klog.Errorf("Error when parse value with prefix: %s", keys[0])
+				valueSource = ValueSourceNone
+			}
 			if len(values) == 1 {
 				return Value{
-					Type:  ValueTypeVariable,
-					Value: values[0],
+					Type:   ValueTypeVariable,
+					Source: valueSource,
+					Value:  values[0],
 				}
 			}
 			return Value{
-				Type:  ValueTypeVariable,
-				Value: values,
+				Type:   ValueTypeVariable,
+				Source: valueSource,
+				Value:  values,
 			}
 		}
 	}
 	return Value{
-		Type:  ValueTypeConstant,
-		Value: content,
+		Type:   ValueTypeConstant,
+		Source: ValueSourceNone,
+		Value:  content,
 	}
 }
 
 func (value Value) Format() interface{} {
 	if value.Type == ValueTypeConstant {
 		return value.Value
+	}
+	var prefix string
+	switch value.Source {
+	case ValueSourceDictionary:
+		prefix = "$"
+	case ValueSourceApp:
+		prefix = "#"
+	default:
+		prefix = "$"
 	}
 	var format string
 	if str, ok := value.Value.(string); ok {
@@ -72,18 +102,24 @@ func (value Value) Format() interface{} {
 		}
 		format = strings.Join(values, ".")
 	}
-	return fmt.Sprintf("$.%s", format)
+
+	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
-func (value Value) Equals(right Value) bool {
-	return true
-}
-
-func (value Value) Extract(variables interface{}) (interface{}, error) {
-	klog.V(4).Infof("Exacting value with variables: %v %v", value, variables)
+func (value Value) Extract(dictionary interface{}, appdata interface{}) (interface{}, error) {
+	klog.V(4).Infof("Exacting value with variables: %v %v", value, dictionary)
 	if value.Type == ValueTypeConstant {
 		klog.V(6).Infof("Value is a constant: %v", value.Value)
 		return value.Value, nil
+	}
+	var variables interface{}
+	switch value.Source {
+	case ValueSourceDictionary:
+		variables = dictionary
+	case ValueSourceApp:
+		variables = appdata
+	default:
+		variables = dictionary
 	}
 	if str, ok := value.Value.(string); ok {
 		klog.V(6).Infof("Get value with key: %s", str)

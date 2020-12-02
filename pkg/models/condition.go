@@ -6,13 +6,13 @@ type Condition struct {
 	Values     []Value
 }
 
-func (condition Condition) Exec(data interface{}) (bool, error) {
+func (condition Condition) Exec(dictionary interface{}, appdata interface{}) (bool, error) {
 	if len(condition.Conditions) > 0 {
-		return ProcessConditions(condition.Operator, condition.Conditions, data)
+		return ProcessConditions(condition.Operator, condition.Conditions, dictionary, appdata)
 	}
 	var values []interface{}
 	for _, value := range condition.Values {
-		extracted, err := value.Extract(data)
+		extracted, err := value.Extract(dictionary, appdata)
 		if err != nil {
 			return false, err
 		}
@@ -21,10 +21,10 @@ func (condition Condition) Exec(data interface{}) (bool, error) {
 	return condition.Operator.Do(values)
 }
 
-func ProcessConditions(operator Operator, conditions []Condition, data interface{}) (bool, error) {
+func ProcessConditions(operator Operator, conditions []Condition, dictionary, appdata interface{}) (bool, error) {
 	var values []interface{}
 	for _, condition := range conditions {
-		res, err := condition.Exec(data)
+		res, err := condition.Exec(dictionary, appdata)
 		if err != nil {
 			return false, err
 		}
@@ -34,10 +34,10 @@ func ProcessConditions(operator Operator, conditions []Condition, data interface
 }
 
 func ProcessCommonConditions(conditions []Condition, ctx *Context) (bool, error) {
-	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary)
+	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary, nil)
 }
 
 func ProcessAppConditions(app string, conditions []Condition, ctx *Context) (bool, error) {
 	data := ctx.AppData[app]
-	return ProcessConditions(NewOperator("and"), conditions, data)
+	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary, data)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"k8s.io/klog/v2"
 	"math/rand"
 	"strings"
 	"time"
@@ -18,7 +19,9 @@ type Simple struct {
 }
 
 func NewSimple(options map[string]interface{}) *Simple {
-	return &Simple{}
+	return &Simple{
+		Content: options["content"],
+	}
 }
 
 func (*Simple) New(options map[string]interface{}) models.App {
@@ -63,6 +66,7 @@ func (simple *Simple) ExecuteAsOutput(ctx *models.Context, data interface{}) err
 }
 
 func (simple *Simple) RenderContent(variables map[string]interface{}) interface{} {
+	klog.V(4).Infof("Render content %v with variables %v", simple.Content, variables)
 	if content, ok := simple.Content.(string); ok {
 		if strings.HasPrefix(content, "$.") {
 			keys := strings.Split(content, ".")

@@ -33,10 +33,6 @@ func main() {
 			Value:   false,
 		},
 		&cli.BoolFlag{
-			Name:    "verbose",
-			Aliases: []string{"V"},
-		},
-		&cli.BoolFlag{
 			Name:  "dry-run",
 			Value: false,
 		},

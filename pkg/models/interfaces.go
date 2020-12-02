@@ -2,6 +2,7 @@ package models
 
 type Input struct {
 	App        App
+	Dictionary map[string]interface{}
 	Conditions []Condition
 }
 
