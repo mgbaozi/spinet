@@ -27,7 +27,7 @@ type Condition struct {
 type Input struct {
 	App        string                 `json:"app" yaml:"app"`
 	Options    map[string]interface{} `json:"options" yaml:"options"`
-	Dictionary map[string]interface{} `json:"dictionary" yaml:"dictionary"`
+	Mapper     map[string]interface{} `json:"mapper" yaml:"mapper"`
 	Conditions []Condition            `json:"conditions" yaml:"conditions"`
 	Inputs     []Input                `json:"inputs" yaml:"inputs"`
 }

@@ -6,7 +6,8 @@ import (
 
 type Context struct {
 	Dictionary map[string]interface{}
-	AppData    map[string]interface{}
+	// AppData    map[string]interface{}
+	AppData []interface{}
 }
 
 func (ctx *Context) GetVariable(name string) interface{} {
@@ -20,7 +21,6 @@ func (ctx *Context) SetVariable(name, value string) {
 func NewContext() Context {
 	return Context{
 		Dictionary: make(map[string]interface{}),
-		AppData:    make(map[string]interface{}),
 	}
 }
 
@@ -30,7 +30,6 @@ func NewContextWithDictionary(dictionary map[string]interface{}) Context {
 	}
 	return Context{
 		Dictionary: dictionary,
-		AppData:    make(map[string]interface{}),
 	}
 }
 
@@ -55,6 +54,22 @@ func (task *Task) Start() {
 
 }
 
+func (task *Task) processMapper(input *Input, data interface{}) {
+	for key, value := range input.Mapper {
+		if v, err := value.Extract(task.Context.Dictionary, data); err == nil {
+			task.Context.Dictionary[key] = v
+		}
+	}
+}
+
+func (task *Task) processInputConditions(input *Input, appdata interface{}) (bool, error) {
+	return ProcessConditions(NewOperator("and"), input.Conditions, task.Context.Dictionary, appdata)
+}
+
+func (task *Task) processConditions() (bool, error) {
+	return ProcessConditions(NewOperator("and"), task.Conditions, task.Context.Dictionary, nil)
+}
+
 func (task *Task) Execute() {
 	var inputResults []interface{}
 	for _, input := range task.Inputs {
@@ -65,9 +80,9 @@ func (task *Task) Execute() {
 		if err != nil {
 			klog.Errorf("Execute app failed: %v", err)
 		}
-		task.Context.AppData[app.Name()] = data
-		ProcessAppDictionary(app.Name(), input.Dictionary, &task.Context)
-		res, err := ProcessAppConditions(app.Name(), input.Conditions, &task.Context)
+		task.Context.AppData = append(task.Context.AppData, data)
+		task.processMapper(&input, data)
+		res, err := task.processInputConditions(&input, data)
 		if err != nil {
 			klog.Errorf("Process conditions of app %s failed: %v", err)
 		}
@@ -77,7 +92,7 @@ func (task *Task) Execute() {
 		klog.V(2).Infof("Conditions in inputs are not true, skip output...")
 		return
 	}
-	if res, err := ProcessCommonConditions(task.Conditions, &task.Context); err != nil || !res {
+	if res, err := task.processConditions(); err != nil || !res {
 		klog.V(2).Infof("Conditions of task are not true, skip output...")
 		return
 	}

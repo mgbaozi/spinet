@@ -66,7 +66,7 @@ func (input Input) Parse() models.Input {
 	}
 	return models.Input{
 		App:        models.NewApp(name, options),
-		Dictionary: input.Dictionary,
+		Mapper:     models.ParseMapper(input.Mapper),
 		Conditions: conditions,
 	}
 }
@@ -97,7 +97,7 @@ func (output Output) Parse() models.Output {
 	}
 	return models.Output{
 		App: models.NewApp(name, options),
-		// TODO: Dictionary
+		// TODO: Mapper
 		Conditions: conditions,
 	}
 }

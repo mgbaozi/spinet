@@ -6,7 +6,7 @@ type Condition struct {
 	Values     []Value
 }
 
-func (condition Condition) Exec(dictionary interface{}, appdata interface{}) (bool, error) {
+func (condition Condition) Exec(dictionary, appdata interface{}) (bool, error) {
 	if len(condition.Conditions) > 0 {
 		return ProcessConditions(condition.Operator, condition.Conditions, dictionary, appdata)
 	}
@@ -31,13 +31,4 @@ func ProcessConditions(operator Operator, conditions []Condition, dictionary, ap
 		values = append(values, res)
 	}
 	return operator.Do(values)
-}
-
-func ProcessCommonConditions(conditions []Condition, ctx *Context) (bool, error) {
-	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary, nil)
-}
-
-func ProcessAppConditions(app string, conditions []Condition, ctx *Context) (bool, error) {
-	data := ctx.AppData[app]
-	return ProcessConditions(NewOperator("and"), conditions, ctx.Dictionary, data)
 }

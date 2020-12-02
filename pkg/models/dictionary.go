@@ -1,11 +1,12 @@
 package models
 
-func ProcessAppDictionary(app string, dictionray map[string]interface{}, ctx *Context) {
-	data := ctx.AppData[app]
-	for key, content := range dictionray {
+type Mapper map[string]Value
+
+func ParseMapper(data map[string]interface{}) Mapper {
+	mapper := make(Mapper)
+	for key, content := range data {
 		value := ParseValue(content)
-		if v, err := value.Extract(ctx.Dictionary, data); err == nil {
-			ctx.Dictionary[key] = v
-		}
+		mapper[key] = value
 	}
+	return mapper
 }

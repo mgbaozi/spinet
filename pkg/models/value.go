@@ -28,6 +28,18 @@ type Value struct {
 	Value  interface{}
 }
 
+func NewValue() *Value {
+	return &Value{}
+}
+
+func (value *Value) Parse(content interface{}) *Value {
+	newValue := ParseValue(content)
+	value.Type = newValue.Type
+	value.Source = newValue.Source
+	value.Value = newValue.Value
+	return value
+}
+
 func ParseValue(content interface{}) Value {
 	klog.V(4).Infof("Parse value: %v", content)
 	if str, ok := content.(string); ok {
