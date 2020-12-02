@@ -1,8 +1,8 @@
 package triggers
 
 import (
-	"github.com/mgbaozi/spinet/pkg/logging"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"k8s.io/klog/v2"
 	"time"
 )
 
@@ -43,10 +43,10 @@ func (*Timer) Name() string {
 
 func (timer *Timer) run() {
 	ch := time.Tick(time.Duration(timer.Period) * time.Second)
-	logging.Info("Start timer with period: %d", timer.Period)
+	klog.Infof("Start timer with period: %d", timer.Period)
 	for {
 		_ = <-ch
-		logging.Debug("Tick!")
+		klog.V(4).Info("Tick!")
 		timer.ch <- struct{}{}
 	}
 }

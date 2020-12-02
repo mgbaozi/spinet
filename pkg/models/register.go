@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/mgbaozi/spinet/pkg/logging"
+	"k8s.io/klog/v2"
 )
 
 var registeredTypes *RegisteredTypes
@@ -27,19 +27,19 @@ func GetRegisteredTypes() *RegisteredTypes {
 
 func RegisterTrigger(trigger Trigger) {
 	name := trigger.Name()
-	logging.Info("Register trigger: %s", name)
+	klog.V(2).Infof("Register trigger: %s", name)
 	registeredTypes.Triggers[name] = trigger
 }
 
 func RegisterApp(app App) {
 	name := app.Name()
-	logging.Info("Register app: %s", name)
+	klog.V(2).Infof("Register app: %s", name)
 	registeredTypes.Apps[name] = app
 }
 
 func RegisterOperator(operator Operator) {
 	name := operator.Name()
-	logging.Info("Register operator: %s", name)
+	klog.V(2).Infof("Register operator: %s", name)
 	registeredTypes.Operators[name] = operator
 }
 

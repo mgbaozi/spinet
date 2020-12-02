@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/mgbaozi/spinet/pkg/logging"
+	"k8s.io/klog/v2"
 )
 
 type Context struct {
@@ -59,25 +59,25 @@ func (task *Task) Execute() {
 	var inputResults []interface{}
 	for _, input := range task.Inputs {
 		app := input.App
-		logging.Info("Running app: %s", app.Name())
+		klog.V(2).Infof("Running app: %s", app.Name())
 		var data map[string]interface{}
 		err := app.Execute(AppModeInput, &task.Context, &data)
 		if err != nil {
-			logging.Error("Execute app failed: %v", err)
+			klog.Errorf("Execute app failed: %v", err)
 		}
 		task.Context.AppData[app.Name()] = data
 		res, err := ProcessAppConditions(app.Name(), input.Conditions, &task.Context)
 		if err != nil {
-			logging.Error("Process conditions of app %s failed: %v", err)
+			klog.Errorf("Process conditions of app %s failed: %v", err)
 		}
 		inputResults = append(inputResults, res)
 	}
 	if res, err := NewOperator("and").Do(inputResults); err != nil || !res {
-		logging.Info("Conditions in inputs are not true, skip output...")
+		klog.V(2).Infof("Conditions in inputs are not true, skip output...")
 		return
 	}
 	if res, err := ProcessCommonConditions(task.Conditions, &task.Context); err != nil || !res {
-		logging.Info("Conditions of task are not true, skip output...")
+		klog.V(2).Infof("Conditions of task are not true, skip output...")
 		return
 	}
 	for _, output := range task.Outputs {

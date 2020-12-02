@@ -13,9 +13,7 @@ func standAloneTask(c *cli.Context) error {
 		fmt.Println("Parse yaml file failed:", err)
 		return err
 	}
-	fmt.Println(taskSpec)
 	task := taskSpec.Parse()
-	fmt.Println(task)
 	if !dryRun {
 		task.Start()
 	}

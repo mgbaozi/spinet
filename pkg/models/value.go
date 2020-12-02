@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/mgbaozi/spinet/pkg/logging"
+	"k8s.io/klog/v2"
 	"strconv"
 	"strings"
 )
@@ -21,12 +21,12 @@ type Value struct {
 }
 
 func ParseValue(content interface{}) Value {
-	logging.Debug("Parse value: %v", content)
+	klog.V(4).Infof("Parse value: %v", content)
 	if str, ok := content.(string); ok {
-		logging.Trace("Value type is string: %s", str)
+		klog.V(6).Infof("Value type is string: %s", str)
 		if strings.HasPrefix(str, "$.") {
 			keys := strings.Split(str, ".")
-			logging.Trace("Value is a variable, split keys are: %v", keys)
+			klog.V(6).Infof("Value is a variable, split keys are: %v", keys)
 			var values []interface{}
 			for _, key := range keys[1:] {
 				if num, err := strconv.Atoi(key); err == nil {
@@ -35,7 +35,7 @@ func ParseValue(content interface{}) Value {
 					values = append(values, key)
 				}
 			}
-			logging.Trace("Parsed keys are: %v", values)
+			klog.V(6).Infof("Parsed keys are: %v", values)
 			if len(values) == 1 {
 				return Value{
 					Type:  ValueTypeVariable,
@@ -80,16 +80,16 @@ func (value Value) Equals(right Value) bool {
 }
 
 func (value Value) Extract(variables interface{}) (interface{}, error) {
-	logging.Debug("Exacting value with variables: %v %v", value, variables)
+	klog.V(4).Infof("Exacting value with variables: %v %v", value, variables)
 	if value.Type == ValueTypeConstant {
-		logging.Trace("Value is a constant: %v", value.Value)
+		klog.V(6).Infof("Value is a constant: %v", value.Value)
 		return value.Value, nil
 	}
 	if str, ok := value.Value.(string); ok {
-		logging.Trace("Get value with key: %s", str)
+		klog.V(6).Infof("Get value with key: %s", str)
 		return variables.(map[string]interface{})[str], nil
 	} else if keys, ok := value.Value.([]interface{}); ok {
-		logging.Trace("Get value with keys: %v", keys)
+		klog.V(6).Infof("Get value with keys: %v", keys)
 		var result = variables
 		for _, key := range keys {
 			if str, ok := key.(string); ok {
