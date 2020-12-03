@@ -40,11 +40,15 @@ func (value *Value) Parse(content interface{}) *Value {
 	return value
 }
 
+func isVariable(content string) bool {
+	return content == "$" || content == "#" || strings.HasPrefix(content, "$.") || strings.HasPrefix(content, "#.")
+}
+
 func ParseValue(content interface{}) Value {
 	klog.V(4).Infof("Parse value: %v", content)
 	if str, ok := content.(string); ok {
 		klog.V(6).Infof("Value type is string: %s", str)
-		if strings.HasPrefix(str, "$.") || strings.HasPrefix(str, "#.") {
+		if isVariable(str) {
 			keys := strings.Split(str, ".")
 			klog.V(6).Infof("Value is a variable, split keys are: %v", keys)
 			var values []interface{}
@@ -66,6 +70,13 @@ func ParseValue(content interface{}) Value {
 				klog.Errorf("Error when parse value with prefix: %s", keys[0])
 				valueSource = ValueSourceNone
 			}
+			// if len(values) == 0 {
+			// 	return Value{
+			// 		Type:   ValueTypeVariable,
+			// 		Source: valueSource,
+			// 		Value:  nil,
+			// 	}
+			// }
 			if len(values) == 1 {
 				return Value{
 					Type:   ValueTypeVariable,

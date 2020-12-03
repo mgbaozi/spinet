@@ -75,7 +75,7 @@ func (task *Task) Execute() {
 	for _, input := range task.Inputs {
 		app := input.App
 		klog.V(2).Infof("Running app: %s", app.Name())
-		var data map[string]interface{}
+		var data interface{}
 		err := app.Execute(AppModeInput, &task.Context, &data)
 		if err != nil {
 			klog.Errorf("Execute app failed: %v", err)
@@ -84,12 +84,15 @@ func (task *Task) Execute() {
 		task.processMapper(&input, data)
 		res, err := task.processInputConditions(&input, data)
 		if err != nil {
-			klog.Errorf("Process conditions of app %s failed: %v", err)
+			klog.Errorf("Process conditions of app %s failed: %v", app.Name(), err)
 		}
 		inputResults = append(inputResults, res)
 	}
 	if res, err := NewOperator("and").Do(inputResults); err != nil || !res {
-		klog.V(2).Infof("Conditions in inputs are not true, skip output...")
+		if err != nil {
+			klog.V(2).Infof("Condition execute failed with error: %v", err)
+		}
+		klog.V(2).Infof("Conditions in inputs are not true, skip output")
 		return
 	}
 	if res, err := task.processConditions(); err != nil || !res {
@@ -98,6 +101,7 @@ func (task *Task) Execute() {
 	}
 	for _, output := range task.Outputs {
 		app := output.App
-		_ = app.Execute(AppModeOutPut, &task.Context, nil)
+		var data interface{}
+		_ = app.Execute(AppModeOutPut, &task.Context, &data)
 	}
 }
