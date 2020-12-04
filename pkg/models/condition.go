@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"k8s.io/klog/v2"
 )
 
@@ -11,12 +12,23 @@ type Condition struct {
 	Values     []Value
 }
 
-func (condition Condition) Exec(dictionary, appdata interface{}) (bool, error) {
+func (condition Condition) String() string {
+	return fmt.Sprintf("Condition [op=%s,conditions=%v,values=%v]",
+		condition.Operator.Name(), condition.Conditions, condition.Values)
+}
+
+func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err error) {
+	defer func() {
+		if err != nil {
+			klog.V(4).Infof("%s execute failed with error %v", condition, err)
+		} else {
+			klog.V(4).Infof("%s execute with result %v", condition, res)
+		}
+	}()
 	operator := condition.Operator
 	if operator == nil {
 		return false, errors.New("empty operator")
 	}
-	klog.V(4).Infof("Process condition with operator %s and values %v", operator.Name(), condition.Values)
 	if len(condition.Conditions) > 0 {
 		return ProcessConditions(operator, condition.Conditions, dictionary, appdata)
 	}

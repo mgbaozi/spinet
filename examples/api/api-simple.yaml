@@ -15,7 +15,7 @@ inputs:
         - name: Authorization
           value: "$.token"
     conditions:
-      - operator: eq
+      - operator: gt
         values:
           - "#.fruit"
           - "apple"
@@ -29,7 +29,7 @@ inputs:
       - operator: contains
         values:
           - "#"
-          - 10.0
+          - 10
 outputs:
   - app: api
     options:

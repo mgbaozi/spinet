@@ -45,12 +45,12 @@ func isVariable(content string) bool {
 }
 
 func ParseValue(content interface{}) Value {
-	klog.V(4).Infof("Parse value: %v", content)
+	klog.V(6).Infof("Parse value: %v", content)
 	if str, ok := content.(string); ok {
-		klog.V(6).Infof("Value type is string: %s", str)
+		klog.V(7).Infof("Value type is string: %s", str)
 		if isVariable(str) {
 			keys := strings.Split(str, ".")
-			klog.V(6).Infof("Value is a variable, split keys are: %v", keys)
+			klog.V(7).Infof("Value is a variable, split keys are: %v", keys)
 			var values []interface{}
 			for _, key := range keys[1:] {
 				if num, err := strconv.Atoi(key); err == nil {
@@ -59,7 +59,7 @@ func ParseValue(content interface{}) Value {
 					values = append(values, key)
 				}
 			}
-			klog.V(6).Infof("Parsed keys are: %v", values)
+			klog.V(7).Infof("Parsed keys are: %v", values)
 			var valueSource ValueSource
 			switch keys[0] {
 			case "#":
@@ -129,10 +129,19 @@ func (value Value) Format() interface{} {
 	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
-func (value Value) Extract(dictionary interface{}, appdata interface{}) (interface{}, error) {
-	klog.V(4).Infof("Exacting value with variables: %v %v", value, dictionary)
+func (value Value) Extract(dictionary interface{}, appdata interface{}) (res interface{}, err error) {
+	defer func() {
+		if err != nil {
+			klog.V(6).
+				Infof("Extract value %v with dictionary(%v) and appdata(%v) failed with error: %v",
+					value, dictionary, appdata, err)
+		} else {
+			klog.V(6).Infof("Extract value %v success with result %v",
+				value, res)
+		}
+	}()
 	if value.Type == ValueTypeConstant {
-		klog.V(6).Infof("Value is a constant: %v", value.Value)
+		klog.V(7).Infof("Value is a constant: %v", value.Value)
 		return value.Value, nil
 	}
 	var variables interface{}
@@ -145,10 +154,10 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (interfa
 		variables = dictionary
 	}
 	if str, ok := value.Value.(string); ok {
-		klog.V(6).Infof("Get value with key: %s", str)
+		klog.V(7).Infof("Get value with key: %s", str)
 		return variables.(map[string]interface{})[str], nil
 	} else if keys, ok := value.Value.([]interface{}); ok {
-		klog.V(6).Infof("Get value with keys: %v", keys)
+		klog.V(7).Infof("Get value with keys: %v", keys)
 		var result = variables
 		for _, key := range keys {
 			if str, ok := key.(string); ok {
