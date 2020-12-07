@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"io/ioutil"
+	"k8s.io/klog/v2"
 	"net/http"
 	"time"
 )
@@ -32,10 +33,15 @@ func NewAPI(options map[string]interface{}) *API {
 	if !ok {
 		method = http.MethodGet
 	}
+	params, ok := options["params"].(map[string]interface{})
+	if !ok {
+		params = nil
+	}
 	return &API{
 		URL:     options["url"].(string),
 		Headers: nil,
 		Method:  method,
+		Params:  params,
 	}
 }
 
@@ -54,14 +60,29 @@ func (*API) Modes() []models.AppMode {
 	}
 }
 
-func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface{}) error {
+func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface{}) (err error) {
+	defer func() {
+		if err != nil {
+			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.Name(), mode, err)
+		}
+		klog.V(4).Infof("execute app %s in %s mode success", api.Name(), mode)
+	}()
 	headers := map[string]string{
 		"Authorization": "Token example-token",
 	}
 	for _, item := range api.Headers {
 		headers[item.Name] = item.Value
 	}
-	err := callAPI(api.Method, api.URL, headers, api.Params, data)
+	params := make(map[string]interface{})
+	for key, item := range api.Params {
+		value := models.ParseValue(item)
+		res, err := value.Extract(ctx.Dictionary, data)
+		if err != nil {
+			return err
+		}
+		params[key] = res
+	}
+	err = callAPI(api.Method, api.URL, headers, params, data)
 	if err != nil {
 		return err
 	}

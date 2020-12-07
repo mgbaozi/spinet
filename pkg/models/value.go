@@ -22,6 +22,22 @@ const (
 	ValueSourceApp        ValueSource = "app"
 )
 
+func toValueType(t interface{}) (ValueType, bool) {
+	if vt, ok := t.(string); !ok {
+		return ValueTypeConstant, ok
+	} else {
+		return ValueType(vt), true
+	}
+}
+
+func toValueSource(s interface{}) (ValueSource, bool) {
+	if vs, ok := s.(string); !ok {
+		return ValueSourceDictionary, ok
+	} else {
+		return ValueSource(vs), true
+	}
+}
+
 type Value struct {
 	Type   ValueType
 	Source ValueSource
@@ -70,13 +86,6 @@ func ParseValue(content interface{}) Value {
 				klog.Errorf("Error when parse value with prefix: %s", keys[0])
 				valueSource = ValueSourceNone
 			}
-			// if len(values) == 0 {
-			// 	return Value{
-			// 		Type:   ValueTypeVariable,
-			// 		Source: valueSource,
-			// 		Value:  nil,
-			// 	}
-			// }
 			if len(values) == 1 {
 				return Value{
 					Type:   ValueTypeVariable,
@@ -88,6 +97,26 @@ func ParseValue(content interface{}) Value {
 				Type:   ValueTypeVariable,
 				Source: valueSource,
 				Value:  values,
+			}
+		}
+	}
+	if dict, ok := content.(map[string]interface{}); ok {
+		var value Value
+		if t, ok := dict["type"]; ok {
+			if value.Type, ok = toValueType(t); ok {
+				if value.Type == ValueTypeVariable {
+					if s, ok := dict["source"]; ok {
+						if value.Source, ok = toValueSource(s); !ok {
+							value.Source = ValueSourceDictionary
+						}
+					} else {
+						value.Source = ValueSourceDictionary
+					}
+				}
+				value.Value = dict["value"]
+				return value
+			} else {
+				klog.V(8).Infof("Wrong value type %v", t)
 			}
 		}
 	}

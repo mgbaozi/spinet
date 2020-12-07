@@ -167,13 +167,15 @@ func compare(lhs, rhs interface{}) (res CompareResult, err error) {
 	}
 }
 
-func isEqual(lhs, rhs interface{}) bool {
+func isEqual(lhs, rhs interface{}) (res bool) {
+	defer func() {
+		klog.V(7).Infof("Compare %v with %v, equal: %v", lhs, rhs, res)
+	}()
 	if lhs == rhs {
 		return true
 	}
 	lvalue := convertToFloat64IfPossible(lhs)
 	rvalue := convertToFloat64IfPossible(rhs)
 	equal := cmp.Equal(lvalue, rvalue)
-	klog.V(7).Infof("Compare %v with %v, equal: %v", lvalue, rvalue, equal)
 	return equal
 }

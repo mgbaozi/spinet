@@ -1,11 +1,12 @@
 package apis
 
 type Meta struct {
-	Name string `json:"name" yaml:"name"`
+	Name      string `json:"name" yaml:"name"`
+	Namespace string `json:"namespace" yaml:"namespace"`
 }
 
 type Task struct {
-	Meta
+	Meta       `json:",inline" yaml:",inline"`
 	Dictionary map[string]interface{} `json:"dictionary" yaml:"dictionary"`
 	Triggers   []Trigger              `json:"triggers" yaml:"triggers"`
 	Conditions []Condition            `json:"conditions" yaml:"conditions"`

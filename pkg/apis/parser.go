@@ -41,7 +41,6 @@ func (task Task) Parse() models.Task {
 	for _, output := range task.Outputs {
 		outputs = append(outputs, output.Parse())
 	}
-	// FIXME: Name is empty
 	return models.Task{
 		Name:       task.Name,
 		Triggers:   triggers,

@@ -22,7 +22,7 @@ func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err 
 		if err != nil {
 			klog.V(4).Infof("%s execute failed with error %v", condition, err)
 		} else {
-			klog.V(4).Infof("%s execute with result %v", condition, res)
+			klog.V(4).Infof("%s execute success with result %v", condition, res)
 		}
 	}()
 	operator := condition.Operator

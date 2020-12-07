@@ -3,7 +3,7 @@ triggers:
   # timer / hook / task / none
   - type: timer
     options:
-      period: 60
+      period: 6
 dictionary:
   token: example-token
 inputs:
@@ -13,8 +13,8 @@ inputs:
       headers:
         - name: Authorization
           value: "$.token"
-    dictionary:
-      fruit: "$.content"
+    mapper:
+      fruit: "#.fruit"
     inputs: []
   - app: api 
     options:
@@ -22,8 +22,8 @@ inputs:
       headers:
         - name: Authorization
           value: "$.token"
-    dictionary:
-      weight: "$.data"
+    mapper:
+      weight: "#"
 conditions:
     # and / or / eq / ne / gt / lt / ge / le / contains / exist / javascript
   - operator: and
@@ -41,10 +41,10 @@ conditions:
 outputs:
   - app: api
     options:
-      url: http://127.0.0.1:4983/api/test
+      url: http://127.0.0.1:4983/api/examples/submit
       method: POST
       headers:
         - name: Authorization
           value: "$.token"
-      json:
+      params:
         thing: "$.fruit"
