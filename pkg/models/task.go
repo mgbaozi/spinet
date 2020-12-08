@@ -39,14 +39,16 @@ type Task struct {
 	Inputs     []Input
 	Conditions []Condition
 	Outputs    []Output
-	Context    Context
+	// FIXME: context need refresh before each execution
+	// TODO: versioned context
+	Context Context
 }
 
 func (task *Task) Start() {
 	for _, trigger := range task.Triggers {
 		for {
 			select {
-			case <-trigger.Triggered():
+			case <-trigger.Triggered(&task.Context):
 				task.Execute()
 			}
 		}

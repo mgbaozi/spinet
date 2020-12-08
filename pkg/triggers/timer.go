@@ -51,7 +51,7 @@ func (timer *Timer) run() {
 	}
 }
 
-func (timer *Timer) Triggered() <-chan struct{} {
+func (timer *Timer) Triggered(ctx *models.Context) <-chan struct{} {
 	if !timer.running {
 		timer.running = true
 		go timer.run()

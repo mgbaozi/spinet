@@ -29,7 +29,7 @@ type App interface {
 type Trigger interface {
 	New(options map[string]interface{}) Trigger
 	Name() string
-	Triggered() <-chan struct{}
+	Triggered(ctx *Context) <-chan struct{}
 }
 
 type Operator interface {

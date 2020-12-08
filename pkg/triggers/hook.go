@@ -80,6 +80,6 @@ func (hook *Hook) Trigger(data interface{}) {
 	hook.ch <- struct{}{}
 }
 
-func (hook *Hook) Triggered() <-chan struct{} {
+func (hook *Hook) Triggered(ctx *models.Context) <-chan struct{} {
 	return hook.ch
 }
