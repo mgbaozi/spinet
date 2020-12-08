@@ -96,8 +96,8 @@ func (output Output) Parse() models.Output {
 		conditions = append(conditions, condition.Parse())
 	}
 	return models.Output{
-		App: models.NewApp(name, options),
-		// TODO: Mapper
+		App:        models.NewApp(name, options),
+		Mapper:     models.ParseMapper(output.Mapper),
 		Conditions: conditions,
 	}
 }

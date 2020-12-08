@@ -112,5 +112,8 @@ func (task *Task) Execute() {
 		app := output.App
 		var data interface{}
 		_ = app.Execute(AppModeOutPut, &task.Context, &data)
+		// TODO: add output validator
+		// TODO: process output mapper
 	}
+	// TODO: add task validator
 }

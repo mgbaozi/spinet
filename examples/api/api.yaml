@@ -1,18 +1,23 @@
 name: get-data-from-api
+
+dictionary:
+  token: example-token
+
 triggers:
   # timer / hook / task / none
   - type: timer
     options:
       period: 6
-dictionary:
-  token: example-token
+
 inputs:
   - app: api
     options:
       url: http://127.0.0.1:4983/api/examples/fruit
       headers:
         - name: Authorization
-          value: "$.token"
+          value:
+            type: template
+            value: "Token {{.token}}"
     mapper:
       fruit: "#.fruit"
     inputs: []
@@ -21,7 +26,7 @@ inputs:
       url: http://127.0.0.1:4983/api/examples/weight
       headers:
         - name: Authorization
-          value: "$.token"
+          value: "${Token {{.token}}}"
     mapper:
       weight: "#"
 conditions:
@@ -38,6 +43,7 @@ conditions:
         values:
           - "$.weight"
           - 10
+
 outputs:
   - app: api
     options:

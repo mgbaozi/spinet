@@ -18,7 +18,7 @@ func init() {
 
 type Header struct {
 	Name  string
-	Value string
+	Value interface{}
 }
 
 type API struct {
@@ -37,9 +37,21 @@ func NewAPI(options map[string]interface{}) *API {
 	if !ok {
 		params = nil
 	}
+	var headers []Header
+	optionsHeaders, ok := options["headers"].([]interface{})
+	if ok {
+		for _, item := range optionsHeaders {
+			if h, ok := item.(map[string]interface{}); ok {
+				headers = append(headers, Header{
+					Name:  h["name"].(string),
+					Value: h["value"],
+				})
+			}
+		}
+	}
 	return &API{
 		URL:     options["url"].(string),
-		Headers: nil,
+		Headers: headers,
 		Method:  method,
 		Params:  params,
 	}
@@ -64,14 +76,18 @@ func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.Name(), mode, err)
+		} else {
+			klog.V(4).Infof("execute app %s in %s mode success", api.Name(), mode)
 		}
-		klog.V(4).Infof("execute app %s in %s mode success", api.Name(), mode)
 	}()
-	headers := map[string]string{
-		"Authorization": "Token example-token",
-	}
+	headers := make(map[string]string)
 	for _, item := range api.Headers {
-		headers[item.Name] = item.Value
+		value := models.ParseValue(item.Value)
+		res, err := value.Extract(ctx.Dictionary, data)
+		if err != nil {
+			return err
+		}
+		headers[item.Name] = fmt.Sprint(res)
 	}
 	params := make(map[string]interface{})
 	for key, item := range api.Params {

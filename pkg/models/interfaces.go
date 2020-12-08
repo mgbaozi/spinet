@@ -8,6 +8,7 @@ type Input struct {
 
 type Output struct {
 	App        App
+	Mapper     map[string]Value
 	Conditions []Condition
 }
 

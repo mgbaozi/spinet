@@ -53,6 +53,7 @@ func fruitHandler(w http.ResponseWriter, r *http.Request) {
 func weightHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%s %s\n", r.Method, r.URL)
 	if err := authMiddleware(w, r); err != nil {
+		fmt.Printf("Error: %v\n", err)
 		return
 	}
 	data := generateList(0, 10, 10)
@@ -64,6 +65,7 @@ func weightHandler(w http.ResponseWriter, r *http.Request) {
 func submitHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%s %s\n", r.Method, r.URL)
 	if err := authMiddleware(w, r); err != nil {
+		fmt.Printf("Error: %v\n", err)
 		return
 	}
 	if r.Method != http.MethodPost {

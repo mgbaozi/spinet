@@ -36,6 +36,7 @@ type Input struct {
 type Output struct {
 	App        string                 `json:"app" yaml:"app"`
 	Options    map[string]interface{} `json:"options" yaml:"options"`
+	Mapper     map[string]interface{} `json:"mapper" yaml:"mapper"`
 	Conditions []Condition            `json:"conditions" yaml:"conditions"`
 	Outputs    []Output               `json:"outputs" yaml:"outputs"`
 }

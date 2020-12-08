@@ -1,19 +1,21 @@
 name: get-data-from-api-simple
-type: simple
+
+dictionary:
+  token: example-token
+
 triggers:
   # timer / hook / task / none
   - type: timer
     options:
       period: 10
-dictionary:
-  token: example-token
+
 inputs:
   - app: api
     options:
       url: http://127.0.0.1:4983/api/examples/fruit
       headers:
         - name: Authorization
-          value: "$.token"
+          value: "${Token {{.token}}}"
     conditions:
       - operator: gt
         values:
@@ -24,12 +26,13 @@ inputs:
       url: http://127.0.0.1:4983/api/examples/weight
       headers:
         - name: Authorization
-          value: "$.token"
+          value: "${Token {{.token}}}"
     conditions:
       - operator: contains
         values:
           - "#"
           - 10
+
 outputs:
   - app: api
     options:
@@ -37,6 +40,6 @@ outputs:
       method: POST
       headers:
         - name: Authorization
-          value: "$.token"
-      json:
+          value: "${Token {{.token}}}"
+      params:
         message: ok

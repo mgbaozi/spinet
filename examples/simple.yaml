@@ -2,6 +2,7 @@ name: simple-task-example
 
 dictionary:
   token: simple-token
+
 triggers:
   - type: timer
     options:

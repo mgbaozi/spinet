@@ -1,11 +1,13 @@
 package models
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"k8s.io/klog/v2"
 	"strconv"
 	"strings"
+	"text/template"
 )
 
 type ValueType string
@@ -14,6 +16,7 @@ type ValueSource string
 const (
 	ValueTypeConstant ValueType = "constant"
 	ValueTypeVariable ValueType = "variable"
+	ValueTypeTemplate ValueType = "template"
 )
 
 const (
@@ -57,7 +60,27 @@ func (value *Value) Parse(content interface{}) *Value {
 }
 
 func isVariable(content string) bool {
+	// $.content || #.content
 	return content == "$" || content == "#" || strings.HasPrefix(content, "$.") || strings.HasPrefix(content, "#.")
+}
+
+func isTemplate(content string) bool {
+	// ${example template {{.data}} value}
+	return (strings.HasPrefix(content, "${") || strings.HasPrefix(content, "#{")) &&
+		strings.HasSuffix(content, "}")
+}
+
+func getValueSource(prefix string) ValueSource {
+	switch prefix {
+	case "#":
+		return ValueSourceApp
+	case "$":
+		return ValueSourceDictionary
+	default:
+		klog.Errorf("Error when parse value with prefix: %s", prefix)
+		return ValueSourceNone
+	}
+
 }
 
 func ParseValue(content interface{}) Value {
@@ -76,16 +99,7 @@ func ParseValue(content interface{}) Value {
 				}
 			}
 			klog.V(7).Infof("Parsed keys are: %v", values)
-			var valueSource ValueSource
-			switch keys[0] {
-			case "#":
-				valueSource = ValueSourceApp
-			case "$":
-				valueSource = ValueSourceDictionary
-			default:
-				klog.Errorf("Error when parse value with prefix: %s", keys[0])
-				valueSource = ValueSourceNone
-			}
+			valueSource := getValueSource(keys[0])
 			if len(values) == 1 {
 				return Value{
 					Type:   ValueTypeVariable,
@@ -99,12 +113,19 @@ func ParseValue(content interface{}) Value {
 				Value:  values,
 			}
 		}
+		if isTemplate(str) {
+			return Value{
+				Type:   ValueTypeTemplate,
+				Source: getValueSource(string(str[0])),
+				Value:  str[2 : len(str)-1],
+			}
+		}
 	}
 	if dict, ok := content.(map[string]interface{}); ok {
 		var value Value
 		if t, ok := dict["type"]; ok {
 			if value.Type, ok = toValueType(t); ok {
-				if value.Type == ValueTypeVariable {
+				if value.Type == ValueTypeVariable || value.Type == ValueTypeTemplate {
 					if s, ok := dict["source"]; ok {
 						if value.Source, ok = toValueSource(s); !ok {
 							value.Source = ValueSourceDictionary
@@ -139,6 +160,10 @@ func (value Value) Format() interface{} {
 		prefix = "#"
 	default:
 		prefix = "$"
+	}
+	if value.Type == ValueTypeTemplate {
+		// TODO: check if value is string
+		return fmt.Sprintf("%s{%v}", prefix, value.Value)
 	}
 	var format string
 	if str, ok := value.Value.(string); ok {
@@ -182,6 +207,20 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (res int
 	default:
 		variables = dictionary
 	}
+	if value.Type == ValueTypeTemplate {
+		klog.V(7).Infof("Value is a template: %v with source %s data", value.Value, value.Source)
+		tmpl, err := template.New("value_parser").Parse(value.Value.(string))
+		if err != nil {
+			return value.Value, err
+		}
+		var buffer bytes.Buffer
+		err = tmpl.Execute(&buffer, variables)
+		if err != nil {
+			return value.Value, err
+		}
+		return buffer.String(), nil
+	}
+	klog.V(7).Infof("Value is a variable %v with source %s data", value.Value, value.Source)
 	if str, ok := value.Value.(string); ok {
 		klog.V(7).Infof("Get value with key: %s", str)
 		return variables.(map[string]interface{})[str], nil
