@@ -1,0 +1,15 @@
+name: simple-hook
+
+triggers:
+  # will add http handler with url /tasks/${taskName}/hooks/${hookName}
+  - type: hook
+    options:
+      name: example
+      mapper:
+        date: "#.date"
+
+inputs: []
+outputs:
+  - app: simple
+    options:
+      content: "$.date"

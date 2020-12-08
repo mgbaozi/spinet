@@ -43,7 +43,7 @@ func (*Timer) Name() string {
 
 func (timer *Timer) run() {
 	ch := time.Tick(time.Duration(timer.Period) * time.Second)
-	klog.Infof("Start timer with period: %d", timer.Period)
+	klog.V(2).Infof("Start timer with period: %d", timer.Period)
 	for {
 		_ = <-ch
 		klog.V(4).Info("Tick!")
