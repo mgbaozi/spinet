@@ -11,6 +11,8 @@ func init() {
 		EQ{},
 		Greater{},
 		Less{},
+		LE{},
+		GE{},
 		Contains{},
 		And{},
 		Or{},
