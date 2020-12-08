@@ -25,19 +25,39 @@ const (
 	ValueSourceApp        ValueSource = "app"
 )
 
+func (vt ValueType) IsValid() bool {
+	switch vt {
+	case ValueTypeConstant, ValueTypeVariable, ValueTypeTemplate:
+		return true
+	default:
+		return false
+	}
+}
+
 func toValueType(t interface{}) (ValueType, bool) {
 	if vt, ok := t.(string); !ok {
-		return ValueTypeConstant, ok
+		return ValueTypeConstant, false
 	} else {
-		return ValueType(vt), true
+		res := ValueType(vt)
+		return res, res.IsValid()
+	}
+}
+
+func (vs ValueSource) IsValid() bool {
+	switch vs {
+	case ValueSourceDictionary, ValueSourceApp, ValueSourceNone:
+		return true
+	default:
+		return false
 	}
 }
 
 func toValueSource(s interface{}) (ValueSource, bool) {
 	if vs, ok := s.(string); !ok {
-		return ValueSourceDictionary, ok
+		return ValueSourceNone, false
 	} else {
-		return ValueSource(vs), true
+		res := ValueSource(vs)
+		return res, res.IsValid()
 	}
 }
 
@@ -80,7 +100,33 @@ func getValueSource(prefix string) ValueSource {
 		klog.Errorf("Error when parse value with prefix: %s", prefix)
 		return ValueSourceNone
 	}
+}
 
+func parseVariable(str string) Value {
+	keys := strings.Split(str, ".")
+	klog.V(7).Infof("Value is a variable, split keys are: %v", keys)
+	var values []interface{}
+	for _, key := range keys[1:] {
+		if num, err := strconv.Atoi(key); err == nil {
+			values = append(values, num)
+		} else {
+			values = append(values, key)
+		}
+	}
+	klog.V(7).Infof("Parsed keys are: %v", values)
+	valueSource := getValueSource(keys[0])
+	if len(values) == 1 {
+		return Value{
+			Type:   ValueTypeVariable,
+			Source: valueSource,
+			Value:  values[0],
+		}
+	}
+	return Value{
+		Type:   ValueTypeVariable,
+		Source: valueSource,
+		Value:  values,
+	}
 }
 
 func ParseValue(content interface{}) Value {
@@ -88,30 +134,7 @@ func ParseValue(content interface{}) Value {
 	if str, ok := content.(string); ok {
 		klog.V(7).Infof("Value type is string: %s", str)
 		if isVariable(str) {
-			keys := strings.Split(str, ".")
-			klog.V(7).Infof("Value is a variable, split keys are: %v", keys)
-			var values []interface{}
-			for _, key := range keys[1:] {
-				if num, err := strconv.Atoi(key); err == nil {
-					values = append(values, num)
-				} else {
-					values = append(values, key)
-				}
-			}
-			klog.V(7).Infof("Parsed keys are: %v", values)
-			valueSource := getValueSource(keys[0])
-			if len(values) == 1 {
-				return Value{
-					Type:   ValueTypeVariable,
-					Source: valueSource,
-					Value:  values[0],
-				}
-			}
-			return Value{
-				Type:   ValueTypeVariable,
-				Source: valueSource,
-				Value:  values,
-			}
+			return parseVariable(str)
 		}
 		if isTemplate(str) {
 			return Value{
@@ -128,6 +151,7 @@ func ParseValue(content interface{}) Value {
 				if value.Type == ValueTypeVariable || value.Type == ValueTypeTemplate {
 					if s, ok := dict["source"]; ok {
 						if value.Source, ok = toValueSource(s); !ok {
+							klog.V(2).Infof("Wrong value source %v, fallback to dictionary", value.Source)
 							value.Source = ValueSourceDictionary
 						}
 					} else {
@@ -183,6 +207,34 @@ func (value Value) Format() interface{} {
 	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
+func extractVariable(value interface{}, variables interface{}) (res interface{}, err error) {
+	if str, ok := value.(string); ok {
+		klog.V(7).Infof("Get value with key: %s", str)
+		return variables.(map[string]interface{})[str], nil
+	} else if keys, ok := value.([]interface{}); ok {
+		klog.V(7).Infof("Get value with keys: %v", keys)
+		var result = variables
+		for _, key := range keys {
+			if str, ok := key.(string); ok {
+				if res, ok := result.(map[string]interface{}); ok {
+					result = res[str]
+				} else {
+					return nil, errors.New(fmt.Sprintf("Failed to exact key: %s", key))
+				}
+			} else if index, ok := key.(int); ok {
+				if res, ok := result.([]interface{}); ok {
+					result = res[index]
+				} else {
+					return nil, errors.New(fmt.Sprintf("Failed to exact index: %d", index))
+				}
+			}
+		}
+		return result, nil
+	}
+	return nil, errors.New(fmt.Sprintf("Failed convert value to string or list"))
+
+}
+
 func (value Value) Extract(dictionary interface{}, appdata interface{}) (res interface{}, err error) {
 	defer func() {
 		if err != nil {
@@ -221,28 +273,5 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (res int
 		return buffer.String(), nil
 	}
 	klog.V(7).Infof("Value is a variable %v with source %s data", value.Value, value.Source)
-	if str, ok := value.Value.(string); ok {
-		klog.V(7).Infof("Get value with key: %s", str)
-		return variables.(map[string]interface{})[str], nil
-	} else if keys, ok := value.Value.([]interface{}); ok {
-		klog.V(7).Infof("Get value with keys: %v", keys)
-		var result = variables
-		for _, key := range keys {
-			if str, ok := key.(string); ok {
-				if res, ok := result.(map[string]interface{}); ok {
-					result = res[str]
-				} else {
-					return nil, errors.New(fmt.Sprintf("Failed to exact key: %s", key))
-				}
-			} else if index, ok := key.(int); ok {
-				if res, ok := result.([]interface{}); ok {
-					result = res[index]
-				} else {
-					return nil, errors.New(fmt.Sprintf("Failed to exact index: %d", index))
-				}
-			}
-		}
-		return result, nil
-	}
-	return nil, errors.New(fmt.Sprintf("Failed convert value to string or list"))
+	return extractVariable(value.Value, variables)
 }

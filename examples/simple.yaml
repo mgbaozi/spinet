@@ -11,7 +11,10 @@ triggers:
 inputs:
   - app: simple
     mapper:
-      content: "#.content"
+      content:
+        type: variable
+        source: app
+        value: "content"
 
     conditions:
       - operator: eq
