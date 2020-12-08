@@ -50,6 +50,7 @@ func (task *Task) Start() {
 			select {
 			case <-trigger.Triggered(&task.Context):
 				task.Execute()
+				//TODO: handle interrupt, timeout, heartbeats
 			}
 		}
 	}

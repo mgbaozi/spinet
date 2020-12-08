@@ -4,6 +4,7 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
+	"net/http"
 )
 
 type HookResource struct {
@@ -14,8 +15,12 @@ func (h HookResource) getHook(name string) *Hook {
 	return h.hooks[name]
 }
 
-func (h HookResource) HookHandler(request *restful.Request, response *restful.Response) {
+func (h HookResource) GoRestfulHookHandler(request *restful.Request, response *restful.Response) {
 	name := request.PathParameter("hook")
+	h.HookHandler(name, response.ResponseWriter, request.Request)
+}
+
+func (h HookResource) HookHandler(name string, w http.ResponseWriter, r *http.Request) {
 	hook := h.getHook(name)
 	var data interface{}
 	hook.Trigger(&data)
@@ -55,6 +60,7 @@ type Hook struct {
 	HookOptions
 	ch      chan struct{}
 	running bool
+	ctx     *models.Context
 }
 
 func NewHook(options map[string]interface{}) *Hook {
@@ -81,5 +87,6 @@ func (hook *Hook) Trigger(data interface{}) {
 }
 
 func (hook *Hook) Triggered(ctx *models.Context) <-chan struct{} {
+	hook.ctx = ctx
 	return hook.ch
 }
