@@ -1,8 +1,10 @@
 package triggers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"github.com/mgbaozi/spinet/pkg/handlers"
 	"k8s.io/klog/v2"
 	"net/http"
 )
@@ -49,20 +51,46 @@ func (h *HookResource) GoEchoHookHandler(c echo.Context) error {
 	id := hookId(namespace, taskName, hookName)
 	klog.V(4).Infof("Trigger hook %s", id)
 	hook := h.getHook(id)
+	var req, resp interface{}
 	if hook == nil {
 		klog.V(4).Infof("Hook %s not found", id)
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error":   "hook not found",
-			"message": fmt.Sprintf("hook %s not found", id),
+		return c.JSON(http.StatusNotFound, handlers.Response{
+			Meta: handlers.Meta{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("hook %s not found", id),
+			},
+			Data: resp,
 		})
 	}
-	var data interface{}
-	hook.Trigger(&data)
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.Response{
+			Meta: handlers.Meta{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("parse json failed with error: %v", err),
+			},
+			Data: resp,
+		})
+	}
+	if err := hook.Trigger(req, &resp); err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.Response{
+			Meta: handlers.Meta{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("hook trigger return error: %v", err),
+			},
+			Data: resp,
+		})
+	}
 	/*
 		Check hook type: sync & async
 		sync hook will return output data
 		async hook will return this data
 		consider how to give this data to task.Context
 	*/
-	return c.JSON(http.StatusOK, data)
+	return c.JSON(http.StatusOK, handlers.Response{
+		Meta: handlers.Meta{
+			Code:    http.StatusOK,
+			Message: "",
+		},
+		Data: resp,
+	})
 }

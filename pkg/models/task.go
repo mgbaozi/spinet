@@ -72,10 +72,10 @@ func (task *Task) Start() {
 
 }
 
-func (task *Task) processMapper(input *Input, data interface{}) {
-	for key, value := range input.Mapper {
-		if v, err := value.Extract(task.Context.Dictionary, data); err == nil {
-			task.Context.Dictionary[key] = v
+func ProcessMapper(ctx *Context, mapper Mapper, data interface{}) {
+	for key, value := range mapper {
+		if v, err := value.Extract(ctx.Dictionary, data); err == nil {
+			ctx.Dictionary[key] = v
 		}
 	}
 }
@@ -103,7 +103,7 @@ func (task *Task) Execute() {
 			klog.V(3).Infof("Execute app failed: %v", err)
 		}
 		task.Context.AppData = append(task.Context.AppData, data)
-		task.processMapper(&input, data)
+		ProcessMapper(&task.Context, input.Mapper, data)
 		res, err := task.processInputConditions(&input, data)
 		if err != nil {
 			klog.V(3).Infof("Process conditions of app %s failed: %v", app.Name(), err)

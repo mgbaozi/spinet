@@ -1,10 +1,10 @@
 package triggers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
+	"reflect"
 )
 
 func init() {
@@ -70,10 +70,14 @@ func (hook *Hook) Id() string {
 	return hookId(hook.ctx.Meta.Namespace, hook.ctx.Meta.Name, hook.HookOptions.Name)
 }
 
-func (hook *Hook) Trigger(data interface{}) {
-	text := `{"content": "ok"}`
-	json.Unmarshal([]byte(text), data)
+func (hook *Hook) Trigger(req, resp interface{}) error {
+	models.ProcessMapper(hook.ctx, hook.Mapper, req)
+	val := reflect.ValueOf(resp)
+	if val.Kind() == reflect.Ptr {
+		val.Elem().Set(reflect.ValueOf(req))
+	}
 	hook.ch <- struct{}{}
+	return nil
 }
 
 func (hook *Hook) Triggered(ctx *models.Context) <-chan struct{} {

@@ -6,10 +6,10 @@ triggers:
     options:
       name: example
       mapper:
-        date: "#.date"
+        data: "#"
 
 inputs: []
 outputs:
   - app: simple
     options:
-      content: "$.date"
+      content: "$.data"
