@@ -3,7 +3,6 @@ module github.com/mgbaozi/spinet
 go 1.15
 
 require (
-	github.com/emicklei/go-restful/v3 v3.4.0
 	github.com/google/go-cmp v0.5.4
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/urfave/cli/v2 v2.3.0
