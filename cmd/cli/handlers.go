@@ -9,11 +9,15 @@ import (
 
 func serveGoEcho(port int) error {
 	ws := echo.New()
+	ws.HideBanner = true
+	ws.HidePort = true
 	hooks := triggers.GetHookResource()
 	ws.POST("/namespaces/:namespace/tasks/:task/hooks/:hook", hooks.GoEchoHookHandler)
-	return ws.Start(fmt.Sprintf(":%d", port))
+	address := fmt.Sprintf(":%d", port)
+	klog.V(2).Infof("http server started on %s", address)
+	return ws.Start(address)
 }
 
-func serveHTTP() {
-	klog.Fatal(serveGoEcho(8080))
+func serveHTTP(port int) error {
+	return serveGoEcho(8080)
 }

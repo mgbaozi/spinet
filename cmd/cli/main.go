@@ -8,10 +8,12 @@ import (
 
 var debug bool
 var dryRun bool
+var port int
 
 func globalConfig(c *cli.Context) error {
 	dryRun = c.Bool("dry-run")
 	debug = c.Bool("debug")
+	port = c.Int("port")
 	return klogInit(c)
 }
 
@@ -35,6 +37,12 @@ func main() {
 		&cli.BoolFlag{
 			Name:  "dry-run",
 			Value: false,
+		},
+		&cli.IntFlag{
+			Name:    "port",
+			Aliases: []string{"p"},
+			Value:   8080,
+			Usage:   "Port for http service",
 		},
 	}
 	app.Flags = append(app.Flags, klogCliFlags...)

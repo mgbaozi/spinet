@@ -15,7 +15,7 @@ func standAloneTask(c *cli.Context) error {
 	}
 	task := taskSpec.Parse()
 	if !dryRun {
-		go serveHTTP()
+		go serveHTTP(port)
 		task.Start()
 	}
 	return nil

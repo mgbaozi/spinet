@@ -1,7 +1,7 @@
 package triggers
 
 import (
-	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"k8s.io/klog/v2"
 	"net/http"
@@ -43,35 +43,26 @@ func (h *HookResource) Deregister(hook *Hook) {
 }
 
 func (h *HookResource) GoEchoHookHandler(c echo.Context) error {
-
 	namespace := c.Param("namespace")
-	task := c.Param("task")
-	hook := c.Param("hook")
-	id := hookId(namespace, task, hook)
-	return h.HookHandler(id, c.Response().Writer, c.Request())
-}
-
-func (h *HookResource) HookHandler(id string, w http.ResponseWriter, r *http.Request) error {
+	taskName := c.Param("task")
+	hookName := c.Param("hook")
+	id := hookId(namespace, taskName, hookName)
 	klog.V(4).Infof("Trigger hook %s", id)
 	hook := h.getHook(id)
 	if hook == nil {
-		w.WriteHeader(404)
-		return nil
+		klog.V(4).Infof("Hook %s not found", id)
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error":   "hook not found",
+			"message": fmt.Sprintf("hook %s not found", id),
+		})
 	}
 	var data interface{}
 	hook.Trigger(&data)
-	resp, err := json.Marshal(data)
-	if err != nil {
-		w.WriteHeader(500)
-		_, err = w.Write([]byte(err.Error()))
-		return err
-	}
-	_, err = w.Write(resp)
-	return err
 	/*
 		Check hook type: sync & async
 		sync hook will return output data
 		async hook will return this data
 		consider how to give this data to task.Context
 	*/
+	return c.JSON(http.StatusOK, data)
 }
