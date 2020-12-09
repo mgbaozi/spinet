@@ -23,7 +23,15 @@ func FromYamlFile(filename string) (Task, error) {
 	return FromYaml(content)
 }
 
+func (task *Task) Validate() *Task {
+	if len(task.Namespace) == 0 {
+		task.Namespace = "default"
+	}
+	return task
+}
+
 func (task Task) Parse() models.Task {
+	task.Validate()
 	context := models.NewContextWithDictionary(task.Dictionary)
 	var triggers []models.Trigger
 	var inputs []models.Input
@@ -42,7 +50,10 @@ func (task Task) Parse() models.Task {
 		outputs = append(outputs, output.Parse())
 	}
 	return models.Task{
-		Name:       task.Name,
+		Meta: models.Meta{
+			Name:      task.Name,
+			Namespace: task.Namespace,
+		},
 		Triggers:   triggers,
 		Inputs:     inputs,
 		Conditions: conditions,

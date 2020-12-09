@@ -2,11 +2,25 @@ package models
 
 import (
 	"k8s.io/klog/v2"
+	"time"
 )
 
+type Meta struct {
+	Name      string
+	Namespace string
+}
+
+type Status struct {
+	Phase     string
+	StartTime *time.Time
+	EndTime   *time.Time
+}
+
 type Context struct {
+	Meta       Meta
+	Status     Status
 	Dictionary map[string]interface{}
-	// AppData    map[string]interface{}
+	// NamedAppData    map[string]interface{}
 	AppData []interface{}
 }
 
@@ -34,7 +48,7 @@ func NewContextWithDictionary(dictionary map[string]interface{}) Context {
 }
 
 type Task struct {
-	Name       string
+	Meta
 	Triggers   []Trigger
 	Inputs     []Input
 	Conditions []Condition
@@ -45,6 +59,7 @@ type Task struct {
 }
 
 func (task *Task) Start() {
+	task.Context.Meta = task.Meta
 	for _, trigger := range task.Triggers {
 		for {
 			select {
