@@ -61,7 +61,7 @@ func (*API) New(options map[string]interface{}) models.App {
 	return NewAPI(options)
 }
 
-func (*API) Name() string {
+func (*API) AppName() string {
 	return "api"
 }
 
@@ -75,9 +75,9 @@ func (*API) Modes() []models.AppMode {
 func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
-			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.Name(), mode, err)
+			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), mode, err)
 		} else {
-			klog.V(4).Infof("execute app %s in %s mode success", api.Name(), mode)
+			klog.V(4).Infof("execute app %s in %s mode success", api.AppName(), mode)
 		}
 	}()
 	headers := make(map[string]string)

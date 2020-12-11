@@ -28,7 +28,7 @@ func (*Simple) New(options map[string]interface{}) models.App {
 	return NewSimple(options)
 }
 
-func (*Simple) Name() string {
+func (*Simple) AppName() string {
 	return "simple"
 }
 

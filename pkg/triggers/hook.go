@@ -1,9 +1,10 @@
 package triggers
 
 import (
-	"fmt"
+	"github.com/mgbaozi/spinet/pkg/handlers"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
+	"net/http"
 	"reflect"
 )
 
@@ -16,6 +17,7 @@ type HookOptions struct {
 	Mapper models.Mapper
 }
 
+//TODO: use merge library such as mergo
 func NewHookOptions(options map[string]interface{}) HookOptions {
 	var mapper models.Mapper
 	if mapperOptions, ok := options["mapper"]; ok {
@@ -53,24 +55,32 @@ func (*Hook) New(options map[string]interface{}) models.Trigger {
 	return NewHook(options)
 }
 
-func (*Hook) Name() string {
+func (hook *Hook) Context() *models.Context {
+	return hook.ctx
+}
+
+func (hook *Hook) Plural() string {
+	return "hooks"
+}
+
+func (hook *Hook) Name() string {
+	return hook.HookOptions.Name
+}
+
+func (hook *Hook) Methods() []string {
+	return []string{http.MethodPost}
+}
+
+func (*Hook) TriggerName() string {
 	return "hook"
 }
 
 func (hook *Hook) run() {
-	klog.V(2).Infof("Start hook %s", hook.Id())
-	GetHookResource().Register(hook)
+	klog.V(2).Infof("Start hook %s", hook.Name())
+	handlers.Register(hook)
 }
 
-func hookId(namespace, task, hook string) string {
-	return fmt.Sprintf("%s.%s.%s", namespace, task, hook)
-}
-
-func (hook *Hook) Id() string {
-	return hookId(hook.ctx.Meta.Namespace, hook.ctx.Meta.Name, hook.HookOptions.Name)
-}
-
-func (hook *Hook) Trigger(req, resp interface{}) error {
+func (hook *Hook) Handler(req, resp interface{}) error {
 	models.ProcessMapper(hook.ctx, hook.Mapper, req)
 	val := reflect.ValueOf(resp)
 	if val.Kind() == reflect.Ptr {

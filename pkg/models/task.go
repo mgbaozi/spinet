@@ -96,7 +96,7 @@ func (task *Task) Execute() {
 	var inputResults []interface{}
 	for _, input := range task.Inputs {
 		app := input.App
-		klog.V(3).Infof("Running app: %s", app.Name())
+		klog.V(3).Infof("Running app: %s", app.AppName())
 		var data interface{}
 		err := app.Execute(AppModeInput, &task.Context, &data)
 		if err != nil {
@@ -106,7 +106,7 @@ func (task *Task) Execute() {
 		ProcessMapper(&task.Context, input.Mapper, data)
 		res, err := task.processInputConditions(&input, data)
 		if err != nil {
-			klog.V(3).Infof("Process conditions of app %s failed: %v", app.Name(), err)
+			klog.V(3).Infof("Process conditions of app %s failed: %v", app.AppName(), err)
 		}
 		inputResults = append(inputResults, res)
 	}
