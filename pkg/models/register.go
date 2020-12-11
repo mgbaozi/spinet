@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+	"fmt"
 	"k8s.io/klog/v2"
 )
 
@@ -60,9 +62,21 @@ func NewTrigger(name string, options map[string]interface{}) Trigger {
 	return trigger.New(options)
 }
 
-func NewApp(name string, options map[string]interface{}) App {
+func AppModeAvailable(app App, mode AppMode) error {
+	for _, item := range app.Modes() {
+		if item == mode {
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("mode %s not allowed", mode))
+}
+
+func NewApp(name string, mode AppMode, options map[string]interface{}) (App, error) {
 	app := registeredTypes.Apps[name]
-	return app.New(options)
+	if err := AppModeAvailable(app, mode); err != nil {
+		return app, err
+	}
+	return app.New(options), nil
 }
 
 func NewOperator(name string) Operator {

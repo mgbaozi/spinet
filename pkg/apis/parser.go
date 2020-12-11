@@ -30,36 +30,34 @@ func (task *Task) Validate() *Task {
 	return task
 }
 
-func (task Task) Parse() models.Task {
+func (task Task) Parse() (res models.Task, err error) {
 	task.Validate()
-	context := models.NewContextWithDictionary(task.Dictionary)
-	var triggers []models.Trigger
-	var inputs []models.Input
-	var conditions []models.Condition
-	var outputs []models.Output
+	res.Meta = models.Meta{
+		Name:      task.Name,
+		Namespace: task.Namespace,
+	}
+	res.Context = models.NewContextWithDictionary(task.Dictionary)
 	for _, trigger := range task.Triggers {
-		triggers = append(triggers, trigger.Parse())
+		res.Triggers = append(res.Triggers, trigger.Parse())
 	}
 	for _, input := range task.Inputs {
-		inputs = append(inputs, input.Parse())
+		if item, err := input.Parse(); err != nil {
+			return res, err
+		} else {
+			res.Inputs = append(res.Inputs, item)
+		}
 	}
 	for _, condition := range task.Conditions {
-		conditions = append(conditions, condition.Parse())
+		res.Conditions = append(res.Conditions, condition.Parse())
 	}
 	for _, output := range task.Outputs {
-		outputs = append(outputs, output.Parse())
+		if item, err := output.Parse(); err != nil {
+			return res, err
+		} else {
+			res.Outputs = append(res.Outputs, item)
+		}
 	}
-	return models.Task{
-		Meta: models.Meta{
-			Name:      task.Name,
-			Namespace: task.Namespace,
-		},
-		Triggers:   triggers,
-		Inputs:     inputs,
-		Conditions: conditions,
-		Outputs:    outputs,
-		Context:    context,
-	}
+	return res, nil
 }
 
 func (trigger Trigger) Parse() models.Trigger {
@@ -68,18 +66,14 @@ func (trigger Trigger) Parse() models.Trigger {
 	return models.NewTrigger(name, options)
 }
 
-func (input Input) Parse() models.Input {
-	name := input.App
+func (input Input) Parse() (res models.Input, err error) {
+	app := input.App
 	options := input.Options
-	var conditions []models.Condition
 	for _, condition := range input.Conditions {
-		conditions = append(conditions, condition.Parse())
+		res.Conditions = append(res.Conditions, condition.Parse())
 	}
-	return models.Input{
-		App:        models.NewApp(name, options),
-		Mapper:     models.ParseMapper(input.Mapper),
-		Conditions: conditions,
-	}
+	res.App, err = models.NewApp(app, models.AppModeInput, options)
+	return res, err
 }
 
 func (condition Condition) Parse() models.Condition {
@@ -99,16 +93,12 @@ func (condition Condition) Parse() models.Condition {
 	}
 }
 
-func (output Output) Parse() models.Output {
-	name := output.App
+func (output Output) Parse() (res models.Output, err error) {
+	app := output.App
 	options := output.Options
-	var conditions []models.Condition
 	for _, condition := range output.Conditions {
-		conditions = append(conditions, condition.Parse())
+		res.Conditions = append(res.Conditions, condition.Parse())
 	}
-	return models.Output{
-		App:        models.NewApp(name, options),
-		Mapper:     models.ParseMapper(output.Mapper),
-		Conditions: conditions,
-	}
+	res.App, err = models.NewApp(app, models.AppModeOutPut, options)
+	return res, err
 }

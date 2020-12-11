@@ -1,19 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"github.com/mgbaozi/spinet/pkg/apis"
 	"github.com/urfave/cli/v2"
+	"k8s.io/klog/v2"
 )
 
 func standAloneTask(c *cli.Context) error {
 	file := c.String("from-file")
 	taskSpec, err := apis.FromYamlFile(file)
 	if err != nil {
-		fmt.Println("Parse yaml file failed:", err)
+		klog.Errorf("Parse yaml file failed with error: %v", err)
 		return err
 	}
-	task := taskSpec.Parse()
+	task, err := taskSpec.Parse()
+	if err != nil {
+		klog.Errorf("Parse task failed with error: %v", err)
+		return err
+	}
 	if !dryRun {
 		go serveHTTP(port)
 		task.Start()

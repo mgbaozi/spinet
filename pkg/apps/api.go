@@ -71,7 +71,6 @@ func (*API) Modes() []models.AppMode {
 		models.AppModeOutPut,
 	}
 }
-
 func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
