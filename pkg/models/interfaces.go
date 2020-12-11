@@ -5,9 +5,10 @@ import (
 )
 
 type Input struct {
-	App        App
-	Mapper     map[string]Value
-	Conditions []Condition
+	App          App
+	Mapper       map[string]Value
+	Conditions   []Condition
+	Dependencies []Input
 }
 
 type Output struct {

@@ -80,10 +80,6 @@ func ProcessMapper(ctx *Context, mapper Mapper, data interface{}) {
 	}
 }
 
-func (task *Task) processInputConditions(input *Input, appdata interface{}) (bool, error) {
-	return ProcessConditions(NewOperator("and"), input.Conditions, task.Context.Dictionary, appdata)
-}
-
 func (task *Task) processConditions() (bool, error) {
 	return ProcessConditions(NewOperator("and"), task.Conditions, task.Context.Dictionary, nil)
 }
@@ -93,31 +89,15 @@ func (task *Task) Execute() {
 		klog.V(2).Infof("Task %s finished", task.Name)
 	}()
 	klog.V(2).Infof("Running task %s", task.Name)
-	var inputResults []interface{}
-	for _, input := range task.Inputs {
-		app := input.App
-		klog.V(3).Infof("Running app: %s", app.AppName())
-		var data interface{}
-		err := app.Execute(AppModeInput, &task.Context, &data)
-		if err != nil {
-			klog.V(3).Infof("Execute app failed: %v", err)
-		}
-		task.Context.AppData = append(task.Context.AppData, data)
-		ProcessMapper(&task.Context, input.Mapper, data)
-		res, err := task.processInputConditions(&input, data)
-		if err != nil {
-			klog.V(3).Infof("Process conditions of app %s failed: %v", app.AppName(), err)
-		}
-		inputResults = append(inputResults, res)
+	res, err := processInputs(&task.Context, task.Inputs)
+	if err != nil {
+		klog.V(3).Infof("Condition execute failed with error: %v", err)
 	}
-	if res, err := NewOperator("and").Do(inputResults); err != nil || !res {
-		if err != nil {
-			klog.V(3).Infof("Condition execute failed with error: %v", err)
-		}
+	if !res {
 		klog.V(3).Infof("Conditions in inputs are not true, skip output")
 		return
 	}
-	res, err := task.processConditions()
+	res, err = task.processConditions()
 	if err != nil {
 		klog.V(3).Infof("Process conditions of task %s failed with error %v, skip output...", task.Name, err)
 		return

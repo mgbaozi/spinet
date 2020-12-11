@@ -72,6 +72,13 @@ func (input Input) Parse() (res models.Input, err error) {
 	for _, condition := range input.Conditions {
 		res.Conditions = append(res.Conditions, condition.Parse())
 	}
+	for _, item := range input.Dependencies {
+		if dependency, err := item.Parse(); err != nil {
+			return res, err
+		} else {
+			res.Dependencies = append(res.Dependencies, dependency)
+		}
+	}
 	res.App, err = models.NewApp(app, models.AppModeInput, options)
 	return res, err
 }

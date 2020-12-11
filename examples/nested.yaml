@@ -1,4 +1,4 @@
-name: simple-task-example
+name: nested-task-example
 
 dictionary:
   token: simple-token
@@ -15,19 +15,18 @@ inputs:
         type: variable
         source: app
         value: "content"
-
-  - app: simple
-    mapper:
-      content:
-        type: variable
-        source: app
-        value: "content"
-
-    conditions:
-      - operator: eq
-        values:
-          - "#.content"
-          - "apple"
+    dependencies:
+    - app: simple
+      mapper:
+        content:
+          type: variable
+          source: app
+          value: "content"
+      conditions:
+        - operator: eq
+          values:
+            - "#.content"
+            - "apple"
 
 outputs:
   - app: simple

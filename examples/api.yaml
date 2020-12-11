@@ -20,7 +20,7 @@ inputs:
             value: "Token {{.token}}"
     mapper:
       fruit: "#.fruit"
-    inputs: []
+    dependencies: []
   - app: api 
     options:
       url: http://127.0.0.1:4983/api/examples/weight
