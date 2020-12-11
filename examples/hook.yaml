@@ -1,7 +1,7 @@
 name: simple-hook
 
 triggers:
-  # will add http handler with url /tasks/${taskName}/hooks/${hookName}
+  # will add http handler with url /namespaces/${namespace}/tasks/${taskName}/hooks/${hookName}
   - type: hook
     options:
       name: example
