@@ -44,7 +44,7 @@ func klogInit(c *cli.Context) error {
 		logLevel = debugLogLevel
 	}
 	klogFlags := map[string]string{
-		"v":                fmt.Sprint(debugLogLevel),
+		"v":                fmt.Sprint(logLevel),
 		"logtostderr":      fmt.Sprint(c.Bool("logtostderr")),
 		"stderrthreshold":  fmt.Sprint(c.Int("stderrthreshold")),
 		"alsologtostderr":  fmt.Sprint(c.Bool("alsologtostderr")),
@@ -52,12 +52,11 @@ func klogInit(c *cli.Context) error {
 		"log_dir":          c.String("log_dir"),
 		"log_backtrace_at": c.String("log_backtrace_at"),
 	}
+	klog.InitFlags(nil)
 	flag.VisitAll(func(fl *flag.Flag) {
 		if val, ok := klogFlags[fl.Name]; ok {
 			_ = fl.Value.Set(val)
 		}
 	})
-	klog.InitFlags(nil)
-	flag.Parse()
 	return nil
 }

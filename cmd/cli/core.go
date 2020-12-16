@@ -15,7 +15,7 @@ func core(c *cli.Context) error {
 				"period": 10,
 			}),
 		},
-		Inputs: []models.Input{
+		Inputs: []models.Step{
 			{
 				App: &apps.Simple{},
 				Conditions: []models.Condition{
@@ -29,7 +29,7 @@ func core(c *cli.Context) error {
 				},
 			},
 		},
-		Outputs: []models.Output{
+		Outputs: []models.Step{
 			{
 				App: &apps.Simple{
 					Content: "ok",

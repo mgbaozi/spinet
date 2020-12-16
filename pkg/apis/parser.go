@@ -9,18 +9,18 @@ import (
 	"io/ioutil"
 )
 
-func FromYaml(content []byte) (Task, error) {
+func TaskFromYaml(content []byte) (Task, error) {
 	var task Task
 	err := yaml.Unmarshal(content, &task)
 	return task, err
 }
 
-func FromYamlFile(filename string) (Task, error) {
+func TaskFromYamlFile(filename string) (Task, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return Task{}, err
 	}
-	return FromYaml(content)
+	return TaskFromYaml(content)
 }
 
 func (task *Task) Validate() *Task {
@@ -41,7 +41,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		res.Triggers = append(res.Triggers, trigger.Parse())
 	}
 	for _, input := range task.Inputs {
-		if item, err := input.Parse(); err != nil {
+		if item, err := input.Parse(models.AppModeInput); err != nil {
 			return res, err
 		} else {
 			res.Inputs = append(res.Inputs, item)
@@ -51,7 +51,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		res.Conditions = append(res.Conditions, condition.Parse())
 	}
 	for _, output := range task.Outputs {
-		if item, err := output.Parse(); err != nil {
+		if item, err := output.Parse(models.AppModeOutPut); err != nil {
 			return res, err
 		} else {
 			res.Outputs = append(res.Outputs, item)
@@ -66,20 +66,21 @@ func (trigger Trigger) Parse() models.Trigger {
 	return models.NewTrigger(name, options)
 }
 
-func (input Input) Parse() (res models.Input, err error) {
-	app := input.App
-	options := input.Options
-	for _, condition := range input.Conditions {
+func (step Step) Parse(mode models.AppMode) (res models.Step, err error) {
+	app := step.App
+	options := step.Options
+	for _, condition := range step.Conditions {
 		res.Conditions = append(res.Conditions, condition.Parse())
 	}
-	for _, item := range input.Dependencies {
-		if dependency, err := item.Parse(); err != nil {
+	for _, item := range step.Dependencies {
+		if dependency, err := item.Parse(mode); err != nil {
 			return res, err
 		} else {
 			res.Dependencies = append(res.Dependencies, dependency)
 		}
 	}
-	res.App, err = models.NewApp(app, models.AppModeInput, options)
+	res.Mode = mode
+	res.App, err = models.NewApp(app, mode, options)
 	return res, err
 }
 
@@ -100,12 +101,22 @@ func (condition Condition) Parse() models.Condition {
 	}
 }
 
-func (output Output) Parse() (res models.Output, err error) {
-	app := output.App
-	options := output.Options
-	for _, condition := range output.Conditions {
-		res.Conditions = append(res.Conditions, condition.Parse())
+func CustomAppFromYaml(content []byte) (CustomApp, error) {
+	var app CustomApp
+	err := yaml.Unmarshal(content, &app)
+	return app, err
+}
+
+func CustomAppFromYamlFile(filename string) (CustomApp, error) {
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return CustomApp{}, err
 	}
-	res.App, err = models.NewApp(app, models.AppModeOutPut, options)
-	return res, err
+	return CustomAppFromYaml(content)
+}
+
+func (app CustomApp) Parse() (res models.CustomApp, err error) {
+	res.Modes = app.Modes
+	res.Task, err = app.Task.Parse()
+	return
 }

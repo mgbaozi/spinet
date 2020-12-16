@@ -50,9 +50,9 @@ func NewContextWithDictionary(dictionary map[string]interface{}) Context {
 type Task struct {
 	Meta
 	Triggers   []Trigger
-	Inputs     []Input
+	Inputs     []Step
 	Conditions []Condition
-	Outputs    []Output
+	Outputs    []Step
 	// FIXME: context need refresh before each execution
 	// TODO: versioned context
 	Context Context

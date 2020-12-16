@@ -51,6 +51,6 @@ outputs:
       method: POST
       headers:
         - name: Authorization
-          value: "$.token"
+          value: "${Token {{.token}}}"
       params:
         thing: "$.fruit"

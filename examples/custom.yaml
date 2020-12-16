@@ -1,0 +1,14 @@
+name: custom
+
+inputs:
+  - app: simple
+    mapper:
+      content:
+        type: variable
+        source: app
+        value: "content"
+
+outputs:
+  - app: dual
+    options:
+      content: "$.content"

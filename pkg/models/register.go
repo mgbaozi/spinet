@@ -3,8 +3,11 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/urfave/cli/v2"
 	"k8s.io/klog/v2"
 )
+
+type Callback func(c *cli.Context) error
 
 var registeredTypes *RegisteredTypes
 
@@ -63,7 +66,7 @@ func NewTrigger(name string, options map[string]interface{}) Trigger {
 }
 
 func AppModeAvailable(app App, mode AppMode) error {
-	for _, item := range app.Modes() {
+	for _, item := range app.AppModes() {
 		if item == mode {
 			return nil
 		}

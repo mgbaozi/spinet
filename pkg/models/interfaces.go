@@ -4,17 +4,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Input struct {
+type Step struct {
 	App          App
+	Mode         AppMode
 	Mapper       map[string]Value
 	Conditions   []Condition
-	Dependencies []Input
-}
-
-type Output struct {
-	App        App
-	Mapper     map[string]Value
-	Conditions []Condition
+	Dependencies []Step
 }
 
 type AppMode string
@@ -27,7 +22,7 @@ const (
 type App interface {
 	AppName() string
 	New(options map[string]interface{}) App
-	Modes() []AppMode
+	AppModes() []AppMode
 	Execute(mode AppMode, ctx *Context, data interface{}) error
 }
 

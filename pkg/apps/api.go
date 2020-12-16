@@ -65,7 +65,7 @@ func (*API) AppName() string {
 	return "api"
 }
 
-func (*API) Modes() []models.AppMode {
+func (*API) AppModes() []models.AppMode {
 	return []models.AppMode{
 		models.AppModeInput,
 		models.AppModeOutPut,

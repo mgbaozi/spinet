@@ -32,7 +32,7 @@ func (*Simple) AppName() string {
 	return "simple"
 }
 
-func (*Simple) Modes() []models.AppMode {
+func (*Simple) AppModes() []models.AppMode {
 	return []models.AppMode{
 		models.AppModeInput,
 		models.AppModeOutPut,

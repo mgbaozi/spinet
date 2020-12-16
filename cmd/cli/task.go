@@ -8,7 +8,7 @@ import (
 
 func standAloneTask(c *cli.Context) error {
 	file := c.String("from-file")
-	taskSpec, err := apis.FromYamlFile(file)
+	taskSpec, err := apis.TaskFromYamlFile(file)
 	if err != nil {
 		klog.Errorf("Parse yaml file failed with error: %v", err)
 		return err

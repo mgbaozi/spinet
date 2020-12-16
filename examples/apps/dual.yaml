@@ -1,0 +1,33 @@
+name: dual
+
+dictionary:
+  token: example-token
+
+modes:
+  - output
+
+inputs:
+  - app: api
+    options:
+      url: http://127.0.0.1:4983/api/examples/fruit
+      headers:
+        - name: Authorization
+          value:
+            type: template
+            value: "Token {{.token}}"
+    mapper:
+      fruit: "#.fruit"
+
+
+outputs:
+  - app: api
+    options:
+      url: http://127.0.0.1:4983/api/examples/submit
+      params:
+        fruit: "$.fruit"
+        content: "$.options.content"
+      headers:
+        - name: Authorization
+          value: "${Token {{.token}}}"
+    mapper:
+      weight: "#"
