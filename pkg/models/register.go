@@ -3,11 +3,8 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"k8s.io/klog/v2"
 )
-
-type Callback func(c *cli.Context) error
 
 var registeredTypes *RegisteredTypes
 
