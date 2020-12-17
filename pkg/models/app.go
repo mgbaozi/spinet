@@ -1,5 +1,7 @@
 package models
 
+import "k8s.io/klog/v2"
+
 type CustomApp struct {
 	Task
 	Modes   []AppMode
@@ -26,6 +28,16 @@ func (custom *CustomApp) AppModes() []AppMode {
 	return custom.Modes
 }
 
-func (custom *CustomApp) Execute(mode AppMode, ctx *Context, data interface{}) (err error) {
+func (custom *CustomApp) Execute(ctx *Context, mode AppMode, data interface{}) (err error) {
+	defer func() {
+		if err != nil {
+			klog.V(4).Infof("Execute app %s failed with error %v", custom.Name, err)
+		}
+		klog.V(2).Infof("App %s finished", custom.Name)
+	}()
+	var res bool
+	if res, err = processSteps(&custom.Context, custom.Inputs, string(AppModeInput)); err != nil || !res {
+		return
+	}
 	return
 }

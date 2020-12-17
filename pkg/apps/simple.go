@@ -46,7 +46,7 @@ func (*Simple) getExampleData() string {
 	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
 }
 
-func (simple *Simple) Execute(mode models.AppMode, ctx *models.Context, data interface{}) error {
+func (simple *Simple) Execute(ctx *models.Context, mode models.AppMode, data interface{}) error {
 	if mode == models.AppModeInput {
 		return simple.ExecuteAsInput(ctx, data)
 	} else if mode == models.AppModeOutPut {

@@ -23,7 +23,7 @@ type App interface {
 	AppName() string
 	New(options map[string]interface{}) App
 	AppModes() []AppMode
-	Execute(mode AppMode, ctx *Context, data interface{}) error
+	Execute(ctx *Context, mode AppMode, data interface{}) error
 }
 
 type Trigger interface {

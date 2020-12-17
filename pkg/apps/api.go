@@ -71,7 +71,7 @@ func (*API) AppModes() []models.AppMode {
 		models.AppModeOutPut,
 	}
 }
-func (api *API) Execute(mode models.AppMode, ctx *models.Context, data interface{}) (err error) {
+func (api *API) Execute(ctx *models.Context, mode models.AppMode, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), mode, err)

@@ -36,7 +36,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		Name:      task.Name,
 		Namespace: task.Namespace,
 	}
-	res.Context = models.NewContextWithDictionary(task.Dictionary)
+	res.SetDictionary(task.Dictionary)
 	for _, trigger := range task.Triggers {
 		res.Triggers = append(res.Triggers, trigger.Parse())
 	}
@@ -78,6 +78,10 @@ func (step Step) Parse(mode models.AppMode) (res models.Step, err error) {
 		} else {
 			res.Dependencies = append(res.Dependencies, dependency)
 		}
+	}
+	res.Mapper = make(map[string]models.Value)
+	for key, value := range step.Mapper {
+		res.Mapper[key] = models.ParseValue(value)
 	}
 	res.Mode = mode
 	res.App, err = models.NewApp(app, mode, options)

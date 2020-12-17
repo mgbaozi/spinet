@@ -18,7 +18,7 @@ inputs:
     dependencies:
     - app: simple
       mapper:
-        content:
+        dep-content:
           type: variable
           source: app
           value: "content"
@@ -32,6 +32,9 @@ outputs:
   - app: simple
     options:
       content: "$.content"
+  - app: simple
+    options:
+      content: "$.dep-content"
   - app: simple
     options:
       content: "$.token"
