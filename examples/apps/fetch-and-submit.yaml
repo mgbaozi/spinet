@@ -1,7 +1,8 @@
-name: dual
+name: fetch-and-submit
 
 dictionary:
-  token: example-token
+  token: auth-token
+  content: post-data
 
 modes:
   - output
@@ -23,9 +24,10 @@ outputs:
   - app: api
     options:
       url: http://127.0.0.1:4983/api/examples/submit
+      method: POST
       params:
         fruit: "$.fruit"
-        content: "$.options.content"
+        content: "$.content"
       headers:
         - name: Authorization
           value: "${Token {{.token}}}"

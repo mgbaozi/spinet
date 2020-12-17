@@ -1,0 +1,24 @@
+# Should start with --custom-app examples/apps/fetch-and-submit.yaml
+name: custom-app
+
+dictionary:
+  token: example-token
+
+triggers:
+  - type: timer
+    options:
+      period: 3
+
+inputs:
+  - app: simple
+    mapper:
+      content:
+        type: variable
+        source: app
+        value: "content"
+
+outputs:
+  - app: fetch-and-submit
+    options:
+      token: "$.token"
+      content: "$.content"

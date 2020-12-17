@@ -69,6 +69,8 @@ func (task *Task) SetDictionary(dictionary map[string]interface{}) {
 
 func (task *Task) Start() {
 	task.Context.Meta = task.Meta
+	//FIXME: only the first trigger will active
+	//FIXME: check if task has trigger
 	for _, trigger := range task.Triggers {
 		for {
 			select {
