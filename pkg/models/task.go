@@ -120,13 +120,7 @@ func (task *Task) Execute() (res bool, err error) {
 	if res, err = task.processConditions(); err != nil || !res {
 		return
 	}
-	for _, output := range task.Outputs {
-		app := output.App
-		var data interface{}
-		_ = app.Execute(&task.Context, AppModeOutPut, &data)
-		// TODO: add output validator
-		// TODO: process output mapper
-	}
+	return processSteps(&task.Context, task.Outputs, string(AppModeOutPut))
+	// TODO: add output validator
 	// TODO: add task validator
-	return true, nil
 }

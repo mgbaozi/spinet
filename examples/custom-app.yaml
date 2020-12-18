@@ -22,3 +22,8 @@ outputs:
     options:
       token: "$.token"
       content: "$.content"
+    mapper:
+      data: "#"
+  - app: simple
+    options:
+      content: "$.data"
