@@ -10,10 +10,14 @@ func (step *Step) processConditions(ctx *Context, appdata interface{}) (bool, er
 }
 
 func (step *Step) Process(ctx *Context, key string) (res bool, err error) {
+	ctx.Trace.Indent()
+	ctx.Trace.Push(true, "processing "+key, nil)
 	defer func() {
 		if err != nil {
 			klog.V(3).Infof("Execute app %s failed: %v", step.App.AppName(), err)
 		}
+		ctx.Trace.Push(err == nil, "process "+key+" finished", res)
+		ctx.Trace.UnIndent()
 	}()
 	if res, err := processSteps(ctx, step.Dependencies, key); err != nil || !res {
 		return res, err
@@ -29,7 +33,13 @@ func (step *Step) Process(ctx *Context, key string) (res bool, err error) {
 	return step.processConditions(ctx, data)
 }
 
-func processSteps(ctx *Context, steps []Step, prefix string) (bool, error) {
+func processSteps(ctx *Context, steps []Step, prefix string) (res bool, err error) {
+	ctx.Trace.Indent()
+	ctx.Trace.Push(true, "processing "+prefix, nil)
+	defer func() {
+		ctx.Trace.Push(err == nil, "process "+prefix+" finished", res)
+		ctx.Trace.UnIndent()
+	}()
 	var dependencyResults []interface{}
 	for index := range steps {
 		key := fmt.Sprintf("%s.%d", prefix, index)

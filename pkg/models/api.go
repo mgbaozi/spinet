@@ -11,23 +11,22 @@ import (
 )
 
 type Header struct {
-	Name string
+	Name  string
 	Value string
 }
 
 type API struct {
-	URL string
+	URL     string
 	Headers []Header
-	Method string
-	Processor ProcessorFunc
+	Method  string
 }
 
 func NewAPI(options map[string]interface{}) API {
 	headers := options["header"].([]Header)
 	return API{
-		URL: options["url"].(string),
+		URL:     options["url"].(string),
 		Headers: headers,
-		Method: options["method"].(string),
+		Method:  options["method"].(string),
 	}
 }
 

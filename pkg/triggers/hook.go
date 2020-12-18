@@ -81,6 +81,7 @@ func (hook *Hook) run() {
 }
 
 func (hook *Hook) Handler(req, resp interface{}) error {
+	//FIXME: context will be replaced
 	models.ProcessMapper(hook.ctx, hook.Mapper, req)
 	//TODO: specify resp value
 	val := reflect.ValueOf(resp)
