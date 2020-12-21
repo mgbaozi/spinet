@@ -17,6 +17,7 @@ const (
 	ValueTypeConstant ValueType = "constant"
 	ValueTypeVariable ValueType = "variable"
 	ValueTypeTemplate ValueType = "template"
+	ValueTypeMap      ValueType = "map"
 )
 
 const (
@@ -164,6 +165,15 @@ func ParseValue(content interface{}) Value {
 				klog.V(8).Infof("Wrong value type %v", t)
 			}
 		}
+		// Parse as non-value map
+		res := make(map[string]interface{})
+		for key, item := range dict {
+			res[key] = ParseValue(item)
+		}
+		return Value{
+			Type:  ValueTypeMap,
+			Value: res,
+		}
 	}
 	return Value{
 		Type:   ValueTypeConstant,
@@ -175,6 +185,19 @@ func ParseValue(content interface{}) Value {
 func (value Value) Format() interface{} {
 	if value.Type == ValueTypeConstant {
 		return value.Value
+	}
+	if value.Type == ValueTypeMap {
+		values := make(map[string]interface{})
+		if dict, ok := value.Value.(map[string]interface{}); ok {
+			for key, item := range dict {
+				if v, ok := item.(Value); ok {
+					values[key] = v.Format()
+				} else {
+					values[key] = item
+				}
+			}
+		}
+		return values
 	}
 	var prefix string
 	switch value.Source {
@@ -249,6 +272,22 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (res int
 	if value.Type == ValueTypeConstant {
 		klog.V(7).Infof("Value is a constant: %v", value.Value)
 		return value.Value, nil
+	}
+	if value.Type == ValueTypeMap {
+		klog.V(7).Infof("Value is a map: %v", value.Value)
+		values := make(map[string]interface{})
+		if dict, ok := value.Value.(map[string]interface{}); ok {
+			for key, item := range dict {
+				if v, ok := item.(Value); ok {
+					if values[key], err = v.Extract(dictionary, appdata); err != nil {
+						return values, err
+					}
+				} else {
+					values[key] = item
+				}
+			}
+		}
+		return values, nil
 	}
 	var variables interface{}
 	switch value.Source {

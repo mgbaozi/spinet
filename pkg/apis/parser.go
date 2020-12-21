@@ -1,7 +1,6 @@
 package apis
 
 import (
-	_ "github.com/mgbaozi/spinet/pkg/apps"
 	"github.com/mgbaozi/spinet/pkg/models"
 	_ "github.com/mgbaozi/spinet/pkg/operators"
 	_ "github.com/mgbaozi/spinet/pkg/triggers"

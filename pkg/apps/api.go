@@ -22,13 +22,14 @@ type Header struct {
 }
 
 type API struct {
+	Mode    models.AppMode
 	URL     string
 	Headers []Header
 	Method  string
 	Params  map[string]interface{}
 }
 
-func NewAPI(options map[string]interface{}) *API {
+func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
 	method, ok := options["method"].(string)
 	if !ok {
 		method = http.MethodGet
@@ -50,6 +51,7 @@ func NewAPI(options map[string]interface{}) *API {
 		}
 	}
 	return &API{
+		Mode:    mode,
 		URL:     options["url"].(string),
 		Headers: headers,
 		Method:  method,
@@ -57,8 +59,8 @@ func NewAPI(options map[string]interface{}) *API {
 	}
 }
 
-func (*API) New(options map[string]interface{}) models.App {
-	return NewAPI(options)
+func (*API) New(mode models.AppMode, options map[string]interface{}) models.App {
+	return NewAPI(mode, options)
 }
 
 func (*API) AppName() string {
@@ -71,12 +73,12 @@ func (*API) AppModes() []models.AppMode {
 		models.AppModeOutPut,
 	}
 }
-func (api *API) Execute(ctx *models.Context, mode models.AppMode, data interface{}) (err error) {
+func (api *API) Execute(ctx *models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
-			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), mode, err)
+			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), api.Mode, err)
 		} else {
-			klog.V(4).Infof("execute app %s in %s mode success", api.AppName(), mode)
+			klog.V(4).Infof("execute app %s in %s mode success", api.AppName(), api.Mode)
 		}
 	}()
 	headers := make(map[string]string)
@@ -97,12 +99,25 @@ func (api *API) Execute(ctx *models.Context, mode models.AppMode, data interface
 		}
 		params[key] = res
 	}
-	err = callAPI(api.Method, api.URL, headers, params, data)
+	var method, url string
+	var ok bool
+	if v, err := models.ParseValue(api.Method).Extract(ctx.Dictionary, data); err != nil {
+		return err
+	} else {
+		if method, ok = v.(string); !ok {
+			method = api.Method
+		}
+	}
+	if v, err := models.ParseValue(api.URL).Extract(ctx.Dictionary, data); err != nil {
+		return err
+	} else {
+		if url, ok = v.(string); !ok {
+			url = api.URL
+		}
+	}
+	err = callAPI(method, url, headers, params, data)
 	if err != nil {
 		return err
-	}
-	if mode == models.AppModeInput {
-	} else if mode == models.AppModeOutPut {
 	}
 	return nil
 }
@@ -116,6 +131,7 @@ func callAPI(method string, url string, headers map[string]string, params interf
 		var data []byte
 		if params != nil {
 			data, _ = json.Marshal(params)
+			headers["content-type"] = "application/json"
 		}
 		req, err = http.NewRequest(method, url, bytes.NewBuffer(data))
 	}

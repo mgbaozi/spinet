@@ -15,17 +15,19 @@ func init() {
 }
 
 type Simple struct {
+	Mode    models.AppMode
 	Content interface{}
 }
 
-func NewSimple(options map[string]interface{}) *Simple {
+func NewSimple(mode models.AppMode, options map[string]interface{}) *Simple {
 	return &Simple{
+		Mode:    mode,
 		Content: options["content"],
 	}
 }
 
-func (*Simple) New(options map[string]interface{}) models.App {
-	return NewSimple(options)
+func (*Simple) New(mode models.AppMode, options map[string]interface{}) models.App {
+	return NewSimple(mode, options)
 }
 
 func (*Simple) AppName() string {
@@ -46,10 +48,10 @@ func (*Simple) getExampleData() string {
 	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
 }
 
-func (simple *Simple) Execute(ctx *models.Context, mode models.AppMode, data interface{}) error {
-	if mode == models.AppModeInput {
+func (simple *Simple) Execute(ctx *models.Context, data interface{}) error {
+	if simple.Mode == models.AppModeInput {
 		return simple.ExecuteAsInput(ctx, data)
-	} else if mode == models.AppModeOutPut {
+	} else if simple.Mode == models.AppModeOutPut {
 		return simple.ExecuteAsOutput(ctx, data)
 	}
 	return nil

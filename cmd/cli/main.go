@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mgbaozi/spinet/pkg/apis"
+	_ "github.com/mgbaozi/spinet/pkg/apps"
 	"k8s.io/klog/v2"
 	"os"
 

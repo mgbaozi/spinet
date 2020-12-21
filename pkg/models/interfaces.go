@@ -21,9 +21,9 @@ const (
 
 type App interface {
 	AppName() string
-	New(options map[string]interface{}) App
+	New(mode AppMode, options map[string]interface{}) App
 	AppModes() []AppMode
-	Execute(ctx *Context, mode AppMode, data interface{}) error
+	Execute(ctx *Context, data interface{}) error
 }
 
 type Trigger interface {

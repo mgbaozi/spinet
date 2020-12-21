@@ -7,12 +7,14 @@ import (
 
 type CustomApp struct {
 	Task
+	Mode    AppMode
 	Modes   []AppMode
 	Options map[string]Value
 }
 
-func (custom *CustomApp) New(options map[string]interface{}) App {
+func (custom *CustomApp) New(mode AppMode, options map[string]interface{}) App {
 	app := &CustomApp{
+		Mode:    mode,
 		Task:    custom.Task,
 		Modes:   custom.Modes,
 		Options: make(map[string]Value),
@@ -48,7 +50,7 @@ func (custom *CustomApp) prepare(ctx *Context) (err error) {
 	return nil
 }
 
-func (custom *CustomApp) Execute(ctx *Context, mode AppMode, data interface{}) (err error) {
+func (custom *CustomApp) Execute(ctx *Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("Execute app %s failed with error %v", custom.Name, err)

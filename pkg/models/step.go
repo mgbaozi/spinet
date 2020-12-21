@@ -25,7 +25,7 @@ func (step *Step) Process(ctx *Context, key string) (res bool, err error) {
 	app := step.App
 	klog.V(3).Infof("Running app: %s", app.AppName())
 	var data interface{}
-	if err = app.Execute(ctx, step.Mode, &data); err != nil {
+	if err = app.Execute(ctx, &data); err != nil {
 		return false, err
 	}
 	ctx.AppData[key] = data

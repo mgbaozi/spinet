@@ -76,7 +76,7 @@ func NewApp(name string, mode AppMode, options map[string]interface{}) (App, err
 	if err := AppModeAvailable(app, mode); err != nil {
 		return app, err
 	}
-	return app.New(options), nil
+	return app.New(mode, options), nil
 }
 
 func NewOperator(name string) Operator {

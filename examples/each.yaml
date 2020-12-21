@@ -1,0 +1,31 @@
+name: each-app-example
+
+dictionary:
+  list: ["apple", "banana", "orange"]
+  map:
+    k1: apple
+    k2: banana
+    k3: orange
+
+triggers:
+  - type: timer
+    options:
+      period: 3
+
+inputs: []
+
+outputs:
+  - app: each
+    options:
+      collection: "$.list"
+      apps:
+        - app: simple
+          options:
+            content: "$.content"
+  - app: each
+    options:
+      collection: "$.map"
+      apps:
+        - app: simple
+          options:
+            content: "$.content"
