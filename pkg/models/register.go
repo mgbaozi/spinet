@@ -4,15 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"k8s.io/klog/v2"
+	"strings"
 )
 
 var registeredTypes *RegisteredTypes
 
 type RegisteredTypes struct {
-	Triggers  map[string]Trigger
-	Apps      map[string]App
-	Operators map[string]Operator
-	Handlers  []Handler
+	Triggers       map[string]Trigger
+	Apps           map[string]App
+	Operators      map[string]Operator
+	MagicVariables map[string]MagicVariable
+	Handlers       []Handler
 }
 
 func init() {
@@ -52,6 +54,12 @@ func RegisterOperators(operators ...Operator) {
 	}
 }
 
+func RegisterMagicVariable(magic MagicVariable) {
+	name := magic.Name()
+	klog.V(2).Infof("Register magic variable: %s", name)
+	registeredTypes.MagicVariables[name] = magic
+}
+
 func RegisterHandler(handler Handler) {
 	klog.V(2).Infof("Register handler: %s", handler.Type())
 	registeredTypes.Handlers = append(registeredTypes.Handlers, handler)
@@ -82,6 +90,14 @@ func NewApp(name string, mode AppMode, options map[string]interface{}) (App, err
 func NewOperator(name string) Operator {
 	operator := registeredTypes.Operators[name]
 	return operator
+}
+
+func NewMagicVariable(name string, value interface{}) MagicVariable {
+	name = strings.ToLower(name)
+	if magic, ok := registeredTypes.MagicVariables[name]; ok {
+		return magic.New(value)
+	}
+	return nil
 }
 
 func GetHandlers() []Handler {

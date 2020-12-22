@@ -2,7 +2,6 @@ package models
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"k8s.io/klog/v2"
 	"strconv"
@@ -17,6 +16,7 @@ const (
 	ValueTypeConstant ValueType = "constant"
 	ValueTypeVariable ValueType = "variable"
 	ValueTypeTemplate ValueType = "template"
+	ValueTypeMagic    ValueType = "magic"
 	ValueTypeMap      ValueType = "map"
 )
 
@@ -24,11 +24,13 @@ const (
 	ValueSourceNone       ValueSource = ""
 	ValueSourceDictionary ValueSource = "dictionary"
 	ValueSourceApp        ValueSource = "app"
+	ValueSourceSuper      ValueSource = "super"
+	ValueSourceMerged     ValueSource = "merged"
 )
 
 func (vt ValueType) IsValid() bool {
 	switch vt {
-	case ValueTypeConstant, ValueTypeVariable, ValueTypeTemplate:
+	case ValueTypeConstant, ValueTypeVariable, ValueTypeTemplate, ValueTypeMagic, ValueTypeMap:
 		return true
 	default:
 		return false
@@ -80,6 +82,50 @@ func (value *Value) Parse(content interface{}) *Value {
 	return value
 }
 
+func detectValueTypeFromString(content string) ValueType {
+	if !strings.HasPrefix(content, "$") {
+		return ValueTypeConstant
+	}
+	if strings.HasPrefix(content, "$.") {
+		return ValueTypeVariable
+	}
+	if strings.HasPrefix(content, "${") && strings.HasSuffix(content, "}") {
+		return ValueTypeTemplate
+	}
+	return ValueTypeMagic
+}
+
+func detectValueTypeFromMap(content map[string]interface{}) ValueType {
+	if t, ok := content["type"]; ok {
+		if valueType, ok := toValueType(t); ok {
+			return valueType
+		}
+	}
+	return ValueTypeMap
+}
+
+func detectValueSourceFromMap(content map[string]interface{}) ValueSource {
+	if t, ok := content["source"]; ok {
+		if valueSource, ok := toValueSource(t); ok {
+			return valueSource
+		} else {
+			klog.V(2).Infof("Wrong value source %v, fallback to merged", valueSource)
+		}
+	}
+	return ValueSourceMerged
+}
+
+func detectValueType(content interface{}) ValueType {
+	if str, ok := content.(string); ok {
+		return detectValueTypeFromString(str)
+	}
+
+	if dict, ok := content.(map[string]interface{}); ok {
+		return detectValueTypeFromMap(dict)
+	}
+	return ValueTypeConstant
+}
+
 func isVariable(content string) bool {
 	// $.content || #.content
 	return content == "$" || content == "#" || strings.HasPrefix(content, "$.") || strings.HasPrefix(content, "#.")
@@ -103,84 +149,130 @@ func getValueSource(prefix string) ValueSource {
 	}
 }
 
-func parseVariable(str string) Value {
-	keys := strings.Split(str, ".")
-	klog.V(7).Infof("Value is a variable, split keys are: %v", keys)
-	var values []interface{}
-	for _, key := range keys[1:] {
-		if num, err := strconv.Atoi(key); err == nil {
-			values = append(values, num)
-		} else {
-			values = append(values, key)
-		}
-	}
-	klog.V(7).Infof("Parsed keys are: %v", values)
-	valueSource := getValueSource(keys[0])
-	if len(values) == 1 {
-		return Value{
-			Type:   ValueTypeVariable,
-			Source: valueSource,
-			Value:  values[0],
-		}
-	}
+func parseMagicVariable(content string) Value {
+	name := content[1:]
 	return Value{
-		Type:   ValueTypeVariable,
-		Source: valueSource,
-		Value:  values,
+		Type:   ValueTypeMagic,
+		Source: ValueSourceNone,
+		Value:  name,
 	}
 }
 
-func ParseValue(content interface{}) Value {
-	klog.V(6).Infof("Parse value: %v", content)
-	if str, ok := content.(string); ok {
-		klog.V(7).Infof("Value type is string: %s", str)
-		if isVariable(str) {
-			return parseVariable(str)
-		}
-		if isTemplate(str) {
-			return Value{
-				Type:   ValueTypeTemplate,
-				Source: getValueSource(string(str[0])),
-				Value:  str[2 : len(str)-1],
-			}
-		}
+func parseTemplate(content string) Value {
+	return Value{
+		Type:   ValueTypeTemplate,
+		Source: ValueSourceMerged,
+		Value:  content[2 : len(content)-1],
 	}
-	if dict, ok := content.(map[string]interface{}); ok {
-		var value Value
-		if t, ok := dict["type"]; ok {
-			if value.Type, ok = toValueType(t); ok {
-				if value.Type == ValueTypeVariable || value.Type == ValueTypeTemplate {
-					if s, ok := dict["source"]; ok {
-						if value.Source, ok = toValueSource(s); !ok {
-							klog.V(2).Infof("Wrong value source %v, fallback to dictionary", value.Source)
-							value.Source = ValueSourceDictionary
-						}
-					} else {
-						value.Source = ValueSourceDictionary
-					}
-				}
-				value.Value = dict["value"]
-				return value
-			} else {
-				klog.V(8).Infof("Wrong value type %v", t)
-			}
-		}
-		// Parse as non-value map
-		res := make(map[string]interface{})
-		for key, item := range dict {
-			res[key] = ParseValue(item)
-		}
-		return Value{
-			Type:  ValueTypeMap,
-			Value: res,
-		}
-	}
+}
+
+func constantValue(content interface{}) Value {
 	return Value{
 		Type:   ValueTypeConstant,
 		Source: ValueSourceNone,
 		Value:  content,
 	}
 }
+
+func ParseValue(content interface{}) Value {
+	klog.V(6).Infof("Parse value: %v", content)
+	var valueType = ValueTypeConstant
+	if str, ok := content.(string); ok {
+		klog.V(7).Infof("Value type is string: %s", str)
+		valueType = detectValueType(content)
+		switch valueType {
+		case ValueTypeVariable:
+			return parseVariable(str)
+		case ValueTypeMagic:
+			return parseMagicVariable(str)
+		case ValueTypeTemplate:
+			return parseTemplate(str)
+		default:
+			return constantValue(content)
+		}
+	}
+	if dict, ok := content.(map[string]interface{}); ok {
+		klog.V(7).Infof("Value type is map: %v", dict)
+		valueType = detectValueType(dict)
+		switch valueType {
+		case ValueTypeMap:
+			res := make(map[string]interface{})
+			for key, item := range dict {
+				res[key] = ParseValue(item)
+			}
+			return Value{
+				Type:   ValueTypeMap,
+				Source: ValueSourceNone,
+				Value:  res,
+			}
+		case ValueTypeVariable, ValueTypeTemplate:
+			return Value{
+				Type:   valueType,
+				Source: detectValueSourceFromMap(dict),
+				Value:  dict["value"],
+			}
+		default:
+			return Value{
+				Type:   valueType,
+				Source: ValueSourceNone,
+				Value:  dict["value"],
+			}
+		}
+	}
+	return constantValue(content)
+}
+
+//func ParseValue(content interface{}) Value {
+//	klog.V(6).Infof("Parse value: %v", content)
+//	if str, ok := content.(string); ok {
+//		klog.V(7).Infof("Value type is string: %s", str)
+//		if isVariable(str) {
+//			return parseVariable(str)
+//		}
+//		if isTemplate(str) {
+//			return Value{
+//				Type:   ValueTypeTemplate,
+//				Source: getValueSource(string(str[0])),
+//				Value:  str[2 : len(str)-1],
+//			}
+//		}
+//	}
+//	if dict, ok := content.(map[string]interface{}); ok {
+//		var value Value
+//		if t, ok := dict["type"]; ok {
+//			if value.Type, ok = toValueType(t); ok {
+//				if value.Type == ValueTypeVariable || value.Type == ValueTypeTemplate {
+//					if s, ok := dict["source"]; ok {
+//						if value.Source, ok = toValueSource(s); !ok {
+//							klog.V(2).Infof("Wrong value source %v, fallback to dictionary", value.Source)
+//							value.Source = ValueSourceDictionary
+//						}
+//					} else {
+//						value.Source = ValueSourceDictionary
+//					}
+//				}
+//				value.Value = dict["value"]
+//				return value
+//			} else {
+//				klog.V(8).Infof("Wrong value type %v", t)
+//			}
+//		}
+//		// Parse as non-value map
+//		res := make(map[string]interface{})
+//		for key, item := range dict {
+//			res[key] = ParseValue(item)
+//		}
+//		return Value{
+//			Type:  ValueTypeMap,
+//			Value: res,
+//		}
+//	}
+//	return Value{
+//		Type:   ValueTypeConstant,
+//		Source: ValueSourceNone,
+//		Value:  content,
+//	}
+//}
 
 func (value Value) Format() interface{} {
 	if value.Type == ValueTypeConstant {
@@ -230,40 +322,20 @@ func (value Value) Format() interface{} {
 	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
-func extractVariable(value interface{}, variables interface{}) (res interface{}, err error) {
-	if str, ok := value.(string); ok {
-		klog.V(7).Infof("Get value with key: %s", str)
-		return variables.(map[string]interface{})[str], nil
-	} else if keys, ok := value.([]interface{}); ok {
-		klog.V(7).Infof("Get value with keys: %v", keys)
-		var result = variables
-		for _, key := range keys {
-			if str, ok := key.(string); ok {
-				if res, ok := result.(map[string]interface{}); ok {
-					result = res[str]
-				} else {
-					return nil, errors.New(fmt.Sprintf("Failed to exact key: %s", key))
-				}
-			} else if index, ok := key.(int); ok {
-				if res, ok := result.([]interface{}); ok {
-					result = res[index]
-				} else {
-					return nil, errors.New(fmt.Sprintf("Failed to exact index: %d", index))
-				}
-			}
-		}
-		return result, nil
+func mergeData(dictionary interface{}, appdata interface{}, super interface{}) interface{} {
+	return map[string]interface{}{
+		"__dict__":  dictionary,
+		"__app__":   appdata,
+		"__super__": super,
 	}
-	return nil, errors.New(fmt.Sprintf("Failed convert value to string or list"))
-
 }
 
-func (value Value) Extract(dictionary interface{}, appdata interface{}) (res interface{}, err error) {
+func (value Value) Extract(dictionary interface{}, appdata interface{}, super interface{}) (res interface{}, err error) {
 	defer func() {
 		if err != nil {
 			klog.V(6).
-				Infof("Extract value %v with dictionary(%v) and appdata(%v) failed with error: %v",
-					value, dictionary, appdata, err)
+				Infof("Extract value %v with dictionary(%v) and appdata(%v) and super(%v) failed with error: %v",
+					value, dictionary, appdata, super, err)
 		} else {
 			klog.V(6).Infof("Extract value %v success with result %v",
 				value, res)
@@ -279,7 +351,7 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (res int
 		if dict, ok := value.Value.(map[string]interface{}); ok {
 			for key, item := range dict {
 				if v, ok := item.(Value); ok {
-					if values[key], err = v.Extract(dictionary, appdata); err != nil {
+					if values[key], err = v.Extract(dictionary, appdata, super); err != nil {
 						return values, err
 					}
 				} else {
@@ -295,8 +367,10 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}) (res int
 		variables = dictionary
 	case ValueSourceApp:
 		variables = appdata
+	case ValueSourceSuper:
+		variables = super
 	default:
-		variables = dictionary
+		variables = mergeData(dictionary, appdata, super)
 	}
 	if value.Type == ValueTypeTemplate {
 		klog.V(7).Infof("Value is a template: %v with source %s data", value.Value, value.Source)
