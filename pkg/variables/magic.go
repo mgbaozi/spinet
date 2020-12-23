@@ -1,6 +1,9 @@
-package models
+package variables
 
-import "time"
+import (
+	"github.com/mgbaozi/spinet/pkg/models"
+	"time"
+)
 
 /*
 Magic variables:
@@ -11,15 +14,9 @@ $RUNTIME: cluster / standalone
 */
 
 func init() {
-	RegisterMagicVariable(MagicVariableNone{})
-	RegisterMagicVariable(MagicVariableDate{})
-	RegisterMagicVariable(MagicVariableTime{})
-}
-
-type MagicVariable interface {
-	New(value interface{}) MagicVariable
-	Name() string
-	Data() interface{}
+	models.RegisterMagicVariable(MagicVariableNone{})
+	models.RegisterMagicVariable(MagicVariableDate{})
+	models.RegisterMagicVariable(MagicVariableTime{})
 }
 
 type MagicVariableNone struct{}
@@ -28,7 +25,7 @@ func (MagicVariableNone) Name() string {
 	return "none"
 }
 
-func (MagicVariableNone) New(interface{}) MagicVariable {
+func (MagicVariableNone) New(interface{}) models.MagicVariable {
 	return MagicVariableNone{}
 }
 
@@ -40,7 +37,7 @@ type MagicVariableDate struct {
 	date interface{}
 }
 
-func (MagicVariableDate) New(value interface{}) MagicVariable {
+func (MagicVariableDate) New(value interface{}) models.MagicVariable {
 	date := time.Now().Format("2006-01-02")
 	return MagicVariableDate{
 		date: date,
@@ -59,7 +56,7 @@ type MagicVariableTime struct {
 	time interface{}
 }
 
-func (MagicVariableTime) New(value interface{}) MagicVariable {
+func (MagicVariableTime) New(value interface{}) models.MagicVariable {
 	time := time.Now().Unix()
 	return MagicVariableTime{
 		time: time,

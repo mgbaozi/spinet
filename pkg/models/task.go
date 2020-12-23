@@ -17,37 +17,6 @@ type Status struct {
 	EndTime   *time.Time
 }
 
-type Context struct {
-	Meta       Meta
-	Status     Status
-	Dictionary map[string]interface{}
-	AppData    map[string]interface{}
-	Trace      Trace
-}
-
-func (ctx *Context) GetVariable(name string) interface{} {
-	return ctx.Dictionary[name]
-}
-
-func (ctx *Context) SetVariable(name, value string) {
-	ctx.Dictionary[name] = value
-}
-
-func NewContext() Context {
-	return Context{
-		Dictionary: make(map[string]interface{}),
-		AppData:    make(map[string]interface{}),
-	}
-}
-
-func NewContextWithDictionary(dictionary map[string]interface{}) Context {
-	context := NewContext()
-	if dictionary != nil {
-		context.Dictionary = dictionary
-	}
-	return context
-}
-
 type Task struct {
 	Meta
 	Triggers   []Trigger
@@ -96,7 +65,8 @@ func (task *Task) prepare() {
 
 func ProcessMapper(ctx *Context, mapper Mapper, data interface{}) {
 	for key, value := range mapper {
-		if v, err := value.Extract(ctx.Dictionary, data); err == nil {
+		//TODO: super data
+		if v, err := value.Extract(ctx.Dictionary, data, nil); err == nil {
 			ctx.Dictionary[key] = v
 			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
 		}

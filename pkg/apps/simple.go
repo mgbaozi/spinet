@@ -6,7 +6,6 @@ import (
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
 	"math/rand"
-	"strings"
 	"time"
 )
 
@@ -69,13 +68,6 @@ func (simple *Simple) ExecuteAsOutput(ctx *models.Context, data interface{}) err
 
 func (simple *Simple) RenderContent(variables map[string]interface{}) interface{} {
 	klog.V(4).Infof("Render content %v with variables %v", simple.Content, variables)
-	if content, ok := simple.Content.(string); ok {
-		if strings.HasPrefix(content, "$.") {
-			keys := strings.Split(content, ".")
-			for _, key := range keys[1:] {
-				return variables[key]
-			}
-		}
-	}
-	return simple.Content
+	content, _ := models.ParseValue(simple.Content).Extract(variables, nil, nil)
+	return content
 }

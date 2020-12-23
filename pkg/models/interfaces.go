@@ -51,3 +51,9 @@ type Handler interface {
 	// TODO: use func (params ...interface{}) error
 	Handler() func(c echo.Context) error
 }
+
+type MagicVariable interface {
+	New(value interface{}) MagicVariable
+	Name() string
+	Data() interface{}
+}

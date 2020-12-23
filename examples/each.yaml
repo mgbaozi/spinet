@@ -21,11 +21,11 @@ outputs:
       apps:
         - app: simple
           options:
-            content: "$.content"
+            content: "$.__value__"
   - app: each
     options:
       collection: "$.map"
       apps:
         - app: simple
           options:
-            content: "$.content"
+            content: "${{{.__key__}}:{{.__value__}}}"

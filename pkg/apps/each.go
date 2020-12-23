@@ -70,7 +70,7 @@ func (each *Each) executeApps(ctx *models.Context, key interface{}, value interf
 }
 
 func (each *Each) Execute(ctx *models.Context, data interface{}) error {
-	collection, err := models.ParseValue(each.Collection).Extract(ctx.Dictionary, nil)
+	collection, err := models.ParseValue(each.Collection).Extract(ctx.Dictionary, nil, nil)
 	if err != nil {
 		return err
 	}

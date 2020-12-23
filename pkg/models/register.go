@@ -17,35 +17,44 @@ type RegisteredTypes struct {
 	Handlers       []Handler
 }
 
-func init() {
-	//initialize static instance on load
-	registeredTypes = &RegisteredTypes{
-		Triggers:  make(map[string]Trigger),
-		Apps:      make(map[string]App),
-		Operators: make(map[string]Operator),
-	}
-}
+// func init() {
+// 	//initialize static instance on load
+// 	registeredTypes = &RegisteredTypes{
+// 		Triggers:       make(map[string]Trigger),
+// 		Apps:           make(map[string]App),
+// 		Operators:      make(map[string]Operator),
+// 		MagicVariables: make(map[string]MagicVariable),
+// 	}
+// }
 
 func GetRegisteredTypes() *RegisteredTypes {
+	if registeredTypes == nil {
+		registeredTypes = &RegisteredTypes{
+			Triggers:       make(map[string]Trigger),
+			Apps:           make(map[string]App),
+			Operators:      make(map[string]Operator),
+			MagicVariables: make(map[string]MagicVariable),
+		}
+	}
 	return registeredTypes
 }
 
 func RegisterTrigger(trigger Trigger) {
 	name := trigger.TriggerName()
 	klog.V(2).Infof("Register trigger: %s", name)
-	registeredTypes.Triggers[name] = trigger
+	GetRegisteredTypes().Triggers[name] = trigger
 }
 
 func RegisterApp(app App) {
 	name := app.AppName()
 	klog.V(2).Infof("Register app: %s", name)
-	registeredTypes.Apps[name] = app
+	GetRegisteredTypes().Apps[name] = app
 }
 
 func RegisterOperator(operator Operator) {
 	name := operator.Name()
 	klog.V(2).Infof("Register operator: %s", name)
-	registeredTypes.Operators[name] = operator
+	GetRegisteredTypes().Operators[name] = operator
 }
 
 func RegisterOperators(operators ...Operator) {
@@ -57,16 +66,16 @@ func RegisterOperators(operators ...Operator) {
 func RegisterMagicVariable(magic MagicVariable) {
 	name := magic.Name()
 	klog.V(2).Infof("Register magic variable: %s", name)
-	registeredTypes.MagicVariables[name] = magic
+	GetRegisteredTypes().MagicVariables[name] = magic
 }
 
 func RegisterHandler(handler Handler) {
 	klog.V(2).Infof("Register handler: %s", handler.Type())
-	registeredTypes.Handlers = append(registeredTypes.Handlers, handler)
+	GetRegisteredTypes().Handlers = append(GetRegisteredTypes().Handlers, handler)
 }
 
 func NewTrigger(name string, options map[string]interface{}) Trigger {
-	trigger := registeredTypes.Triggers[name]
+	trigger := GetRegisteredTypes().Triggers[name]
 	return trigger.New(options)
 }
 
@@ -80,7 +89,7 @@ func AppModeAvailable(app App, mode AppMode) error {
 }
 
 func NewApp(name string, mode AppMode, options map[string]interface{}) (App, error) {
-	app := registeredTypes.Apps[name]
+	app := GetRegisteredTypes().Apps[name]
 	if err := AppModeAvailable(app, mode); err != nil {
 		return app, err
 	}
@@ -88,18 +97,18 @@ func NewApp(name string, mode AppMode, options map[string]interface{}) (App, err
 }
 
 func NewOperator(name string) Operator {
-	operator := registeredTypes.Operators[name]
+	operator := GetRegisteredTypes().Operators[name]
 	return operator
 }
 
 func NewMagicVariable(name string, value interface{}) MagicVariable {
 	name = strings.ToLower(name)
-	if magic, ok := registeredTypes.MagicVariables[name]; ok {
+	if magic, ok := GetRegisteredTypes().MagicVariables[name]; ok {
 		return magic.New(value)
 	}
 	return nil
 }
 
 func GetHandlers() []Handler {
-	return registeredTypes.Handlers
+	return GetRegisteredTypes().Handlers
 }

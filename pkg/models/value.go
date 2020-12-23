@@ -322,12 +322,31 @@ func (value Value) Format() interface{} {
 	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
-func mergeData(dictionary interface{}, appdata interface{}, super interface{}) interface{} {
-	return map[string]interface{}{
+func merge(res map[string]interface{}, item interface{}) map[string]interface{} {
+	if dict, ok := item.(map[string]interface{}); ok {
+		for key, value := range dict {
+			res[key] = value
+		}
+	}
+	if list, ok := item.([]interface{}); ok {
+		for index, value := range list {
+			key := fmt.Sprintf("%d", index)
+			res[key] = value
+		}
+	}
+	return res
+}
+
+func mergeData(dictionary interface{}, appdata interface{}, super interface{}) map[string]interface{} {
+	res := map[string]interface{}{
 		"__dict__":  dictionary,
 		"__app__":   appdata,
 		"__super__": super,
 	}
+	merge(res, dictionary)
+	merge(res, appdata)
+	merge(res, super)
+	return res
 }
 
 func (value Value) Extract(dictionary interface{}, appdata interface{}, super interface{}) (res interface{}, err error) {
@@ -362,6 +381,7 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}, super in
 		return values, nil
 	}
 	var variables interface{}
+	klog.V(7).Infof("Value's source is %s", value.Source)
 	switch value.Source {
 	case ValueSourceDictionary:
 		variables = dictionary

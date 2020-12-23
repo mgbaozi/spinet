@@ -43,7 +43,8 @@ func (custom *CustomApp) AppModes() []AppMode {
 func (custom *CustomApp) prepare(ctx *Context) (err error) {
 	custom.Context = NewContextWithDictionary(custom.originDictionary)
 	for key, value := range custom.Options {
-		if custom.originDictionary[key], err = value.Extract(ctx.Dictionary, nil); err != nil {
+		//TODO: super data
+		if custom.originDictionary[key], err = value.Extract(ctx.Dictionary, nil, nil); err != nil {
 			return
 		}
 	}

@@ -34,7 +34,8 @@ func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err 
 	}
 	var values []interface{}
 	for _, value := range condition.Values {
-		extracted, err := value.Extract(dictionary, appdata)
+		//TODO: super data
+		extracted, err := value.Extract(dictionary, appdata, nil)
 		if err != nil {
 			return false, err
 		}
