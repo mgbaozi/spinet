@@ -38,7 +38,6 @@ func (task *Task) SetDictionary(dictionary map[string]interface{}) {
 
 func (task *Task) Start() {
 	task.Context.Meta = task.Meta
-	//FIXME: check if task has trigger
 	if len(task.Triggers) == 0 {
 		klog.Errorf("Task %s.%s has no triggers, will never be called", task.Name, task.Namespace)
 		return
