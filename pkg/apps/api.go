@@ -73,7 +73,7 @@ func (*API) AppModes() []models.AppMode {
 		models.AppModeOutPut,
 	}
 }
-func (api *API) Execute(ctx *models.Context, data interface{}) (err error) {
+func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), api.Mode, err)
@@ -84,7 +84,7 @@ func (api *API) Execute(ctx *models.Context, data interface{}) (err error) {
 	headers := make(map[string]string)
 	for _, item := range api.Headers {
 		value := models.ParseValue(item.Value)
-		res, err := value.Extract(ctx.Dictionary, data, nil)
+		res, err := value.Extract(ctx)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (api *API) Execute(ctx *models.Context, data interface{}) (err error) {
 	params := make(map[string]interface{})
 	for key, item := range api.Params {
 		value := models.ParseValue(item)
-		res, err := value.Extract(ctx.Dictionary, data, nil)
+		res, err := value.Extract(ctx)
 		if err != nil {
 			return err
 		}
@@ -101,14 +101,14 @@ func (api *API) Execute(ctx *models.Context, data interface{}) (err error) {
 	}
 	var method, url string
 	var ok bool
-	if v, err := models.ParseValue(api.Method).Extract(ctx.Dictionary, data, nil); err != nil {
+	if v, err := models.ParseValue(api.Method).Extract(ctx); err != nil {
 		return err
 	} else {
 		if method, ok = v.(string); !ok {
 			method = api.Method
 		}
 	}
-	if v, err := models.ParseValue(api.URL).Extract(ctx.Dictionary, data, nil); err != nil {
+	if v, err := models.ParseValue(api.URL).Extract(ctx); err != nil {
 		return err
 	} else {
 		if url, ok = v.(string); !ok {

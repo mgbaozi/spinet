@@ -65,9 +65,9 @@ func toValueSource(s interface{}) (ValueSource, bool) {
 }
 
 type Value struct {
-	Type   ValueType
-	Source ValueSource
-	Value  interface{}
+	Type ValueType
+	// Source ValueSource
+	Value interface{}
 }
 
 func NewValue() *Value {
@@ -77,7 +77,7 @@ func NewValue() *Value {
 func (value *Value) Parse(content interface{}) *Value {
 	newValue := ParseValue(content)
 	value.Type = newValue.Type
-	value.Source = newValue.Source
+	// value.Source = newValue.Source
 	value.Value = newValue.Value
 	return value
 }
@@ -152,25 +152,22 @@ func getValueSource(prefix string) ValueSource {
 func parseMagicVariable(content string) Value {
 	name := content[1:]
 	return Value{
-		Type:   ValueTypeMagic,
-		Source: ValueSourceNone,
-		Value:  name,
+		Type:  ValueTypeMagic,
+		Value: name,
 	}
 }
 
 func parseTemplate(content string) Value {
 	return Value{
-		Type:   ValueTypeTemplate,
-		Source: ValueSourceMerged,
-		Value:  content[2 : len(content)-1],
+		Type:  ValueTypeTemplate,
+		Value: content[2 : len(content)-1],
 	}
 }
 
 func constantValue(content interface{}) Value {
 	return Value{
-		Type:   ValueTypeConstant,
-		Source: ValueSourceNone,
-		Value:  content,
+		Type:  ValueTypeConstant,
+		Value: content,
 	}
 }
 
@@ -201,21 +198,18 @@ func ParseValue(content interface{}) Value {
 				res[key] = ParseValue(item)
 			}
 			return Value{
-				Type:   ValueTypeMap,
-				Source: ValueSourceNone,
-				Value:  res,
+				Type:  ValueTypeMap,
+				Value: res,
 			}
 		case ValueTypeVariable, ValueTypeTemplate:
 			return Value{
-				Type:   valueType,
-				Source: detectValueSourceFromMap(dict),
-				Value:  dict["value"],
+				Type:  valueType,
+				Value: dict["value"],
 			}
 		default:
 			return Value{
-				Type:   valueType,
-				Source: ValueSourceNone,
-				Value:  dict["value"],
+				Type:  valueType,
+				Value: dict["value"],
 			}
 		}
 	}
@@ -291,15 +285,9 @@ func (value Value) Format() interface{} {
 		}
 		return values
 	}
-	var prefix string
-	switch value.Source {
-	case ValueSourceDictionary:
-		prefix = "$"
-	case ValueSourceApp:
-		prefix = "#"
-	default:
-		prefix = "$"
-	}
+
+	var prefix = "$"
+
 	if value.Type == ValueTypeTemplate {
 		// TODO: check if value is string
 		return fmt.Sprintf("%s{%v}", prefix, value.Value)
@@ -349,17 +337,20 @@ func mergeData(dictionary interface{}, appdata interface{}, super interface{}) m
 	return res
 }
 
-func (value Value) Extract(dictionary interface{}, appdata interface{}, super interface{}) (res interface{}, err error) {
+func (value Value) Extract(variables interface{}) (res interface{}, err error) {
 	defer func() {
 		if err != nil {
 			klog.V(6).
-				Infof("Extract value %v with dictionary(%v) and appdata(%v) and super(%v) failed with error: %v",
-					value, dictionary, appdata, super, err)
+				Infof("Extract value %v with variables(%v) failed with error: %v",
+					value, variables, err)
 		} else {
-			klog.V(6).Infof("Extract value %v success with result %v",
+			klog.V(6).Infof("Extract value %v with success with result %v",
 				value, res)
 		}
 	}()
+	if ctx, ok := variables.(Context); ok {
+		variables = ctx.MergedData()
+	}
 	if value.Type == ValueTypeConstant {
 		klog.V(7).Infof("Value is a constant: %v", value.Value)
 		return value.Value, nil
@@ -370,7 +361,7 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}, super in
 		if dict, ok := value.Value.(map[string]interface{}); ok {
 			for key, item := range dict {
 				if v, ok := item.(Value); ok {
-					if values[key], err = v.Extract(dictionary, appdata, super); err != nil {
+					if values[key], err = v.Extract(variables); err != nil {
 						return values, err
 					}
 				} else {
@@ -380,20 +371,8 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}, super in
 		}
 		return values, nil
 	}
-	var variables interface{}
-	klog.V(7).Infof("Value's source is %s", value.Source)
-	switch value.Source {
-	case ValueSourceDictionary:
-		variables = dictionary
-	case ValueSourceApp:
-		variables = appdata
-	case ValueSourceSuper:
-		variables = super
-	default:
-		variables = mergeData(dictionary, appdata, super)
-	}
 	if value.Type == ValueTypeTemplate {
-		klog.V(7).Infof("Value is a template: %v with source %s data", value.Value, value.Source)
+		klog.V(7).Infof("Value is a template: %v", value.Value)
 		tmpl, err := template.New("value_parser").Parse(value.Value.(string))
 		if err != nil {
 			return value.Value, err
@@ -405,6 +384,6 @@ func (value Value) Extract(dictionary interface{}, appdata interface{}, super in
 		}
 		return buffer.String(), nil
 	}
-	klog.V(7).Infof("Value is a variable %v with source %s data", value.Value, value.Source)
+	klog.V(7).Infof("Value is a variable %v", value.Value)
 	return extractVariable(value.Value, variables)
 }

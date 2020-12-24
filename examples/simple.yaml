@@ -13,20 +13,18 @@ inputs:
     mapper:
       content:
         type: variable
-        source: app
         value: "content"
 
   - app: simple
     mapper:
       content:
         type: variable
-        source: app
         value: "content"
 
     conditions:
       - operator: eq
         values:
-          - "#.content"
+          - "$.content"
           - "apple"
 
 outputs:

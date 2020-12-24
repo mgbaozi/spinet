@@ -6,7 +6,7 @@ triggers:
     options:
       name: example
       mapper:
-        data: "#"
+        data: "$.__app__"
 
 inputs: []
 outputs:

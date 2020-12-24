@@ -23,13 +23,13 @@ type App interface {
 	AppName() string
 	New(mode AppMode, options map[string]interface{}) App
 	AppModes() []AppMode
-	Execute(ctx *Context, data interface{}) error
+	Execute(ctx Context, data interface{}) error
 }
 
 type Trigger interface {
 	New(options map[string]interface{}) Trigger
 	TriggerName() string
-	Triggered(ctx *Context) <-chan struct{}
+	Triggered(ctx Context) <-chan struct{}
 }
 
 type Operator interface {
@@ -52,8 +52,8 @@ type Handler interface {
 	Handler() func(c echo.Context) error
 }
 
-type MagicVariable interface {
-	New(value interface{}) MagicVariable
+type BuildInVariable interface {
+	New(value interface{}) BuildInVariable
 	Name() string
 	Data() interface{}
 }

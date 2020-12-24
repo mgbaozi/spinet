@@ -16,7 +16,7 @@ func init() {
 var resource *Resource
 
 type RestHandler interface {
-	Context() *models.Context
+	Context() models.Context
 	Name() string
 	Plural() string
 	Methods() []string

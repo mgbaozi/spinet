@@ -19,7 +19,7 @@ ${(.*)}: template (with merged data)
 each.app
 $.__super__.__key__ $.__super__.__index__: current index
 $.__super__.__value__: value for current item
-$.__super__.__record__: hole collection
+$.__super__.__collection__: hole collection
 */
 
 func parseVariable(str string) Value {
@@ -34,18 +34,15 @@ func parseVariable(str string) Value {
 		}
 	}
 	klog.V(7).Infof("Parsed keys are: %v", values)
-	valueSource := getValueSource(keys[0])
 	if len(values) == 1 {
 		return Value{
-			Type:   ValueTypeVariable,
-			Source: valueSource,
-			Value:  values[0],
+			Type:  ValueTypeVariable,
+			Value: values[0],
 		}
 	}
 	return Value{
-		Type:   ValueTypeVariable,
-		Source: valueSource,
-		Value:  values,
+		Type:  ValueTypeVariable,
+		Value: values,
 	}
 }
 
@@ -74,5 +71,4 @@ func extractVariable(value interface{}, variables interface{}) (res interface{},
 		return result, nil
 	}
 	return nil, errors.New(fmt.Sprintf("Failed convert value to string or list"))
-
 }

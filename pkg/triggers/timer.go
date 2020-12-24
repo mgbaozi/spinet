@@ -24,7 +24,7 @@ type Timer struct {
 	TimerOptions
 	ch      chan struct{}
 	running bool
-	ctx     *models.Context
+	ctx     models.Context
 }
 
 func NewTimer(options map[string]interface{}) *Timer {
@@ -54,7 +54,7 @@ func (timer *Timer) run() {
 	}()
 }
 
-func (timer *Timer) Triggered(ctx *models.Context) <-chan struct{} {
+func (timer *Timer) Triggered(ctx models.Context) <-chan struct{} {
 	timer.ctx = ctx
 	if !timer.running {
 		timer.running = true

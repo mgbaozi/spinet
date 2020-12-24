@@ -14,7 +14,6 @@ inputs:
     mapper:
       content:
         type: variable
-        source: app
         value: "content"
 
 outputs:
@@ -23,7 +22,7 @@ outputs:
       token: "$.token"
       content: "$.content"
     mapper:
-      data: "#"
+      data: "$.__app__"
   - app: simple
     options:
       content: "$.data"

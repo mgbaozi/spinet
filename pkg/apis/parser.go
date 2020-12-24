@@ -35,6 +35,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		Name:      task.Name,
 		Namespace: task.Namespace,
 	}
+	res.Context = models.NewContext()
 	res.SetDictionary(task.Dictionary)
 	for _, trigger := range task.Triggers {
 		res.Triggers = append(res.Triggers, trigger.Parse())

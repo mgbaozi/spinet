@@ -46,7 +46,7 @@ func (task *Task) Start() {
 	//TODO: handle interrupt, timeout, heartbeats
 	cases := make([]reflect.SelectCase, len(task.Triggers))
 	for i, trigger := range task.Triggers {
-		ch := trigger.Triggered(&task.Context)
+		ch := trigger.Triggered(task.Context)
 		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
 	}
 	for {
@@ -63,10 +63,10 @@ func (task *Task) prepare() {
 	task.Context = NewContextWithDictionary(task.originDictionary)
 }
 
-func ProcessMapper(ctx *Context, mapper Mapper, data interface{}) {
+func ProcessMapper(ctx Context, mapper Mapper, data interface{}) {
 	for key, value := range mapper {
 		//TODO: super data
-		if v, err := value.Extract(ctx.Dictionary, data, nil); err == nil {
+		if v, err := value.Extract(ctx); err == nil {
 			ctx.Dictionary[key] = v
 			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
 		}
@@ -74,7 +74,8 @@ func ProcessMapper(ctx *Context, mapper Mapper, data interface{}) {
 }
 
 func (task *Task) processConditions() (bool, error) {
-	return ProcessConditions(NewOperator("and"), task.Conditions, task.Context.Dictionary, nil)
+	//FIXME
+	return ProcessConditions(task.Context, NewOperator("and"), task.Conditions)
 }
 
 func (task *Task) Execute() (res bool, err error) {
@@ -91,13 +92,19 @@ func (task *Task) Execute() (res bool, err error) {
 	task.Context.Trace.Push(true, "task start", nil)
 	klog.V(2).Infof("Running task %s", task.Name)
 	task.prepare()
-	if res, err = processSteps(&task.Context, task.Inputs, string(AppModeInput)); err != nil || !res {
+	magic := map[string]interface{}{
+		"__mode__": string(AppModeInput),
+	}
+	if res, err = processSteps(task.Context.Sub(string(AppModeInput), magic), task.Inputs); err != nil || !res {
 		return
 	}
 	if res, err = task.processConditions(); err != nil || !res {
 		return
 	}
-	return processSteps(&task.Context, task.Outputs, string(AppModeOutPut))
+	magic = map[string]interface{}{
+		"__mode__": string(AppModeInput),
+	}
+	return processSteps(task.Context.Sub(string(AppModeOutPut), magic), task.Outputs)
 	// TODO: add output validator
 	// TODO: add task validator
 }

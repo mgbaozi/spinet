@@ -19,7 +19,7 @@ inputs:
     conditions:
       - operator: gt
         values:
-          - "#.fruit"
+          - "$.fruit"
           - "apple"
   - app: api
     options:
@@ -30,7 +30,7 @@ inputs:
     conditions:
       - operator: contains
         values:
-          - "#"
+          - "$.__app__"
           - 10
 
 outputs:

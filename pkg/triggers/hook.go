@@ -41,7 +41,7 @@ type Hook struct {
 	HookOptions
 	ch      chan struct{}
 	running bool
-	ctx     *models.Context
+	ctx     models.Context
 }
 
 func NewHook(options map[string]interface{}) *Hook {
@@ -55,7 +55,7 @@ func (*Hook) New(options map[string]interface{}) models.Trigger {
 	return NewHook(options)
 }
 
-func (hook *Hook) Context() *models.Context {
+func (hook *Hook) Context() models.Context {
 	return hook.ctx
 }
 
@@ -92,7 +92,7 @@ func (hook *Hook) Handler(req, resp interface{}) error {
 	return nil
 }
 
-func (hook *Hook) Triggered(ctx *models.Context) <-chan struct{} {
+func (hook *Hook) Triggered(ctx models.Context) <-chan struct{} {
 	hook.ctx = ctx
 	if !hook.running {
 		hook.running = true

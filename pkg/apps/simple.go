@@ -47,7 +47,7 @@ func (*Simple) getExampleData() string {
 	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
 }
 
-func (simple *Simple) Execute(ctx *models.Context, data interface{}) error {
+func (simple *Simple) Execute(ctx models.Context, data interface{}) error {
 	if simple.Mode == models.AppModeInput {
 		return simple.ExecuteAsInput(ctx, data)
 	} else if simple.Mode == models.AppModeOutPut {
@@ -56,18 +56,18 @@ func (simple *Simple) Execute(ctx *models.Context, data interface{}) error {
 	return nil
 }
 
-func (simple *Simple) ExecuteAsInput(ctx *models.Context, data interface{}) error {
+func (simple *Simple) ExecuteAsInput(ctx models.Context, data interface{}) error {
 	example := simple.getExampleData()
 	return json.Unmarshal([]byte(example), data)
 }
 
-func (simple *Simple) ExecuteAsOutput(ctx *models.Context, data interface{}) error {
-	_, err := fmt.Println("Logging output:", simple.RenderContent(ctx.Dictionary))
+func (simple *Simple) ExecuteAsOutput(ctx models.Context, data interface{}) error {
+	_, err := fmt.Println("Logging output:", simple.RenderContent(ctx.MergedData()))
 	return err
 }
 
 func (simple *Simple) RenderContent(variables map[string]interface{}) interface{} {
 	klog.V(4).Infof("Render content %v with variables %v", simple.Content, variables)
-	content, _ := models.ParseValue(simple.Content).Extract(variables, nil, nil)
+	content, _ := models.ParseValue(simple.Content).Extract(variables)
 	return content
 }

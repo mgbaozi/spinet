@@ -10,11 +10,11 @@ import (
 var registeredTypes *RegisteredTypes
 
 type RegisteredTypes struct {
-	Triggers       map[string]Trigger
-	Apps           map[string]App
-	Operators      map[string]Operator
-	MagicVariables map[string]MagicVariable
-	Handlers       []Handler
+	Triggers         map[string]Trigger
+	Apps             map[string]App
+	Operators        map[string]Operator
+	BuildInVariables map[string]BuildInVariable
+	Handlers         []Handler
 }
 
 // func init() {
@@ -23,17 +23,17 @@ type RegisteredTypes struct {
 // 		Triggers:       make(map[string]Trigger),
 // 		Apps:           make(map[string]App),
 // 		Operators:      make(map[string]Operator),
-// 		MagicVariables: make(map[string]MagicVariable),
+// 		BuildInVariables: make(map[string]BuildInVariable),
 // 	}
 // }
 
 func GetRegisteredTypes() *RegisteredTypes {
 	if registeredTypes == nil {
 		registeredTypes = &RegisteredTypes{
-			Triggers:       make(map[string]Trigger),
-			Apps:           make(map[string]App),
-			Operators:      make(map[string]Operator),
-			MagicVariables: make(map[string]MagicVariable),
+			Triggers:         make(map[string]Trigger),
+			Apps:             make(map[string]App),
+			Operators:        make(map[string]Operator),
+			BuildInVariables: make(map[string]BuildInVariable),
 		}
 	}
 	return registeredTypes
@@ -63,10 +63,10 @@ func RegisterOperators(operators ...Operator) {
 	}
 }
 
-func RegisterMagicVariable(magic MagicVariable) {
-	name := magic.Name()
-	klog.V(2).Infof("Register magic variable: %s", name)
-	GetRegisteredTypes().MagicVariables[name] = magic
+func RegisterBuildInVariable(variable BuildInVariable) {
+	name := variable.Name()
+	klog.V(2).Infof("Register build-in variable: %s", name)
+	GetRegisteredTypes().BuildInVariables[name] = variable
 }
 
 func RegisterHandler(handler Handler) {
@@ -101,10 +101,10 @@ func NewOperator(name string) Operator {
 	return operator
 }
 
-func NewMagicVariable(name string, value interface{}) MagicVariable {
+func NewBuildInVariable(name string, value interface{}) BuildInVariable {
 	name = strings.ToLower(name)
-	if magic, ok := GetRegisteredTypes().MagicVariables[name]; ok {
-		return magic.New(value)
+	if variable, ok := GetRegisteredTypes().BuildInVariables[name]; ok {
+		return variable.New(value)
 	}
 	return nil
 }

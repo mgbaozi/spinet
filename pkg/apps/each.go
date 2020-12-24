@@ -55,12 +55,18 @@ func (*Each) AppModes() []models.AppMode {
 	}
 }
 
-func (each *Each) executeApps(ctx *models.Context, key interface{}, value interface{}) (results []interface{}, err error) {
+func (each *Each) executeApps(ctx models.Context, key interface{}, value interface{}, collection interface{}) (results []interface{}, err error) {
 	klog.V(6).Infof("Execute app with key: %v, value: %v", key, value)
 	for _, step := range each.Steps {
 		var res bool
-		//TODO: send key & value to app
-		if res, err = step.Process(ctx, fmt.Sprintf(".%d", key)); err != nil {
+		name := fmt.Sprintf("each-%v", key)
+		magic := map[string]interface{}{
+			"__index__":      key,
+			"__key__":        key,
+			"__value__":      value,
+			"__collection__": collection,
+		}
+		if res, err = step.Process(ctx.Sub(name, magic)); err != nil {
 			return
 		} else {
 			results = append(results, res)
@@ -69,15 +75,15 @@ func (each *Each) executeApps(ctx *models.Context, key interface{}, value interf
 	return
 }
 
-func (each *Each) Execute(ctx *models.Context, data interface{}) error {
-	collection, err := models.ParseValue(each.Collection).Extract(ctx.Dictionary, nil, nil)
+func (each *Each) Execute(ctx models.Context, data interface{}) error {
+	collection, err := models.ParseValue(each.Collection).Extract(ctx)
 	if err != nil {
 		return err
 	}
 	if l, ok := collection.([]interface{}); ok {
 		klog.V(6).Infof("Collection is a list: %v", l)
 		for index, item := range l {
-			if res, err := each.executeApps(ctx, index, item); err != nil {
+			if res, err := each.executeApps(ctx, index, item, collection); err != nil {
 				return err
 			} else {
 				val := reflect.ValueOf(data)
@@ -91,7 +97,7 @@ func (each *Each) Execute(ctx *models.Context, data interface{}) error {
 	if m, ok := collection.(map[string]interface{}); ok {
 		klog.V(6).Infof("Collection is a map: %v", m)
 		for key, item := range m {
-			if res, err := each.executeApps(ctx, key, item); err != nil {
+			if res, err := each.executeApps(ctx, key, item, collection); err != nil {
 				return err
 			} else {
 				val := reflect.ValueOf(data)

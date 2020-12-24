@@ -17,7 +17,7 @@ func (condition Condition) String() string {
 		condition.Operator.Name(), condition.Conditions, condition.Values)
 }
 
-func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err error) {
+func (condition Condition) Exec(ctx Context) (res bool, err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("%s execute failed with error %v", condition, err)
@@ -30,12 +30,13 @@ func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err 
 		return false, errors.New("empty operator")
 	}
 	if len(condition.Conditions) > 0 {
-		return ProcessConditions(operator, condition.Conditions, dictionary, appdata)
+		//FIXME
+		return ProcessConditions(ctx, operator, condition.Conditions)
 	}
 	var values []interface{}
 	for _, value := range condition.Values {
 		//TODO: super data
-		extracted, err := value.Extract(dictionary, appdata, nil)
+		extracted, err := value.Extract(ctx)
 		if err != nil {
 			return false, err
 		}
@@ -44,10 +45,10 @@ func (condition Condition) Exec(dictionary, appdata interface{}) (res bool, err 
 	return operator.Do(values)
 }
 
-func ProcessConditions(operator Operator, conditions []Condition, dictionary, appdata interface{}) (bool, error) {
+func ProcessConditions(ctx Context, operator Operator, conditions []Condition) (bool, error) {
 	var values []interface{}
 	for _, condition := range conditions {
-		res, err := condition.Exec(dictionary, appdata)
+		res, err := condition.Exec(ctx)
 		if err != nil {
 			return false, err
 		}

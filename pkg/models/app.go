@@ -40,18 +40,18 @@ func (custom *CustomApp) AppModes() []AppMode {
 	return custom.Modes
 }
 
-func (custom *CustomApp) prepare(ctx *Context) (err error) {
+func (custom *CustomApp) prepare(ctx Context) (err error) {
 	custom.Context = NewContextWithDictionary(custom.originDictionary)
 	for key, value := range custom.Options {
 		//TODO: super data
-		if custom.originDictionary[key], err = value.Extract(ctx.Dictionary, nil, nil); err != nil {
+		if custom.originDictionary[key], err = value.Extract(ctx.MergedData()); err != nil {
 			return
 		}
 	}
 	return nil
 }
 
-func (custom *CustomApp) Execute(ctx *Context, data interface{}) (err error) {
+func (custom *CustomApp) Execute(ctx Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("Execute app %s failed with error %v", custom.Name, err)
@@ -66,13 +66,19 @@ func (custom *CustomApp) Execute(ctx *Context, data interface{}) (err error) {
 		return err
 	}
 	var res bool
-	if res, err = processSteps(&custom.Context, custom.Inputs, string(AppModeInput)); err != nil || !res {
+	magic := map[string]interface{}{
+		"__mode__": string(AppModeInput),
+	}
+	if res, err = processSteps(custom.Context.Sub(string(AppModeInput), magic), custom.Inputs); err != nil || !res {
 		return
 	}
 	if res, err = custom.processConditions(); err != nil || !res {
 		return
 	}
-	if res, err = processSteps(&custom.Context, custom.Outputs, string(AppModeOutPut)); err != nil || !res {
+	magic = map[string]interface{}{
+		"__mode__": string(AppModeInput),
+	}
+	if res, err = processSteps(custom.Context.Sub(string(AppModeOutPut), magic), custom.Outputs); err != nil || !res {
 		return
 	}
 	return

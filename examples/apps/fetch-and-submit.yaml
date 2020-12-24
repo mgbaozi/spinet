@@ -17,7 +17,7 @@ inputs:
             type: template
             value: "Token {{.token}}"
     mapper:
-      fruit: "#.fruit"
+      fruit: "$.fruit"
 
 
 outputs:
@@ -32,4 +32,4 @@ outputs:
         - name: Authorization
           value: "${Token {{.token}}}"
     mapper:
-      weight: "#"
+      weight: "$.__app__"
