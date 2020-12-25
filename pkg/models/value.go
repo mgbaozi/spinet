@@ -268,6 +268,7 @@ func ParseValue(content interface{}) Value {
 //	}
 //}
 
+//FIXME: formatter is wrong now
 func (value Value) Format() interface{} {
 	if value.Type == ValueTypeConstant {
 		return value.Value

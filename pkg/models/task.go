@@ -25,7 +25,7 @@ type Task struct {
 	Outputs    []Step
 	// TODO: versioned context
 	Context          Context
-	originDictionary map[string]interface{}
+	OriginDictionary map[string]interface{}
 }
 
 // set origin dictionary of task, it will set to context before every execution
@@ -33,11 +33,11 @@ func (task *Task) SetDictionary(dictionary map[string]interface{}) {
 	if dictionary == nil {
 		dictionary = make(map[string]interface{})
 	}
-	task.originDictionary = dictionary
+	task.OriginDictionary = dictionary
 }
 
 func (task *Task) Start() {
-	task.Context.Meta = task.Meta
+	task.prepare()
 	if len(task.Triggers) == 0 {
 		klog.Errorf("Task %s.%s has no triggers, will never be called", task.Name, task.Namespace)
 		return
@@ -45,24 +45,26 @@ func (task *Task) Start() {
 	//TODO: handle interrupt, timeout, heartbeats
 	cases := make([]reflect.SelectCase, len(task.Triggers))
 	for i, trigger := range task.Triggers {
-		ch := trigger.Triggered(task.Context)
+		ch := trigger.Triggered(&task.Context)
 		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
 	}
 	for {
 		_, _, _ = reflect.Select(cases)
 		task.Execute()
 		klog.V(9).Infof("%s", task.Context.Trace.String())
+		task.prepare()
 	}
 }
 
 func (task *Task) prepare() {
-	if task.originDictionary == nil {
-		task.originDictionary = make(map[string]interface{})
+	if task.OriginDictionary == nil {
+		task.OriginDictionary = make(map[string]interface{})
 	}
-	task.Context = NewContextWithDictionary(task.originDictionary)
+	task.Context = NewContextWithDictionary(task.OriginDictionary)
+	task.Context.Meta = task.Meta
 }
 
-func ProcessMapper(ctx Context, mapper Mapper, data interface{}) {
+func ProcessMapper(ctx Context, mapper Mapper) {
 	for key, value := range mapper {
 		//TODO: super data
 		if v, err := value.Extract(ctx); err == nil {
@@ -90,7 +92,7 @@ func (task *Task) Execute() (res bool, err error) {
 	}()
 	task.Context.Trace.Push(true, "task start", nil)
 	klog.V(2).Infof("Running task %s", task.Name)
-	task.prepare()
+	//task.prepare()
 	magic := map[string]interface{}{
 		"__mode__": string(AppModeInput),
 	}

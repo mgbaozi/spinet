@@ -18,12 +18,14 @@ type Each struct {
 	Mode       models.AppMode
 	Collection interface{}
 	Steps      []models.Step
+	options    map[string]interface{}
 }
 
 func NewEach(mode models.AppMode, options map[string]interface{}) *Each {
 	each := &Each{
 		Mode:       mode,
 		Collection: options["collection"].(string),
+		options:    options,
 	}
 	yml, _ := yaml.Marshal(options["apps"])
 	var steps []apis.Step
@@ -53,6 +55,10 @@ func (*Each) AppModes() []models.AppMode {
 		models.AppModeInput,
 		models.AppModeOutPut,
 	}
+}
+
+func (each *Each) Options() map[string]interface{} {
+	return each.options
 }
 
 func (each *Each) executeApps(ctx models.Context, key interface{}, value interface{}, collection interface{}) (results []interface{}, err error) {

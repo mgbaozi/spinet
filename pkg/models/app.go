@@ -7,24 +7,26 @@ import (
 
 type CustomApp struct {
 	Task
-	Mode    AppMode
-	Modes   []AppMode
-	Options map[string]Value
+	Mode       AppMode
+	Modes      []AppMode
+	AppOptions map[string]Value
+	options    map[string]interface{}
 }
 
 func (custom *CustomApp) New(mode AppMode, options map[string]interface{}) App {
 	app := &CustomApp{
-		Mode:    mode,
-		Task:    custom.Task,
-		Modes:   custom.Modes,
-		Options: make(map[string]Value),
+		Mode:       mode,
+		Task:       custom.Task,
+		Modes:      custom.Modes,
+		AppOptions: make(map[string]Value),
 	}
-	if app.originDictionary == nil {
-		app.originDictionary = make(map[string]interface{})
+	if app.OriginDictionary == nil {
+		app.OriginDictionary = make(map[string]interface{})
 	}
 	for key, item := range options {
-		app.Options[key] = ParseValue(item)
+		app.AppOptions[key] = ParseValue(item)
 	}
+	app.options = options
 	return app
 }
 
@@ -36,15 +38,19 @@ func (custom *CustomApp) Register() {
 	RegisterApp(custom)
 }
 
+func (custom *CustomApp) Options() map[string]interface{} {
+	return custom.options
+}
+
 func (custom *CustomApp) AppModes() []AppMode {
 	return custom.Modes
 }
 
 func (custom *CustomApp) prepare(ctx Context) (err error) {
-	custom.Context = NewContextWithDictionary(custom.originDictionary)
-	for key, value := range custom.Options {
+	custom.Context = NewContextWithDictionary(custom.OriginDictionary)
+	for key, value := range custom.AppOptions {
 		//TODO: super data
-		if custom.originDictionary[key], err = value.Extract(ctx.MergedData()); err != nil {
+		if custom.OriginDictionary[key], err = value.Extract(ctx.MergedData()); err != nil {
 			return
 		}
 	}

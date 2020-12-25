@@ -27,6 +27,7 @@ type API struct {
 	Headers []Header
 	Method  string
 	Params  map[string]interface{}
+	options map[string]interface{}
 }
 
 func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
@@ -56,6 +57,7 @@ func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
 		Headers: headers,
 		Method:  method,
 		Params:  params,
+		options: options,
 	}
 }
 
@@ -73,6 +75,11 @@ func (*API) AppModes() []models.AppMode {
 		models.AppModeOutPut,
 	}
 }
+
+func (api *API) Options() map[string]interface{} {
+	return api.options
+}
+
 func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
@@ -92,12 +99,17 @@ func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	}
 	params := make(map[string]interface{})
 	for key, item := range api.Params {
-		value := models.ParseValue(item)
-		res, err := value.Extract(ctx)
-		if err != nil {
-			return err
+		var paramKey = key
+		if value, err := models.ParseValue(key).Extract(ctx); err == nil {
+			if pk, ok := value.(string); ok {
+				paramKey = pk
+			}
 		}
-		params[key] = res
+		if value, err := models.ParseValue(item).Extract(ctx); err != nil {
+			return err
+		} else {
+			params[paramKey] = value
+		}
 	}
 	var method, url string
 	var ok bool

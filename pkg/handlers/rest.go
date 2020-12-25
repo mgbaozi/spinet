@@ -16,6 +16,7 @@ func init() {
 var resource *Resource
 
 type RestHandler interface {
+	//TODO: Context -> Meta
 	Context() models.Context
 	Name() string
 	Plural() string

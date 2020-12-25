@@ -23,13 +23,15 @@ type App interface {
 	AppName() string
 	New(mode AppMode, options map[string]interface{}) App
 	AppModes() []AppMode
+	Options() map[string]interface{}
 	Execute(ctx Context, data interface{}) error
 }
 
 type Trigger interface {
 	New(options map[string]interface{}) Trigger
 	TriggerName() string
-	Triggered(ctx Context) <-chan struct{}
+	Triggered(ctx *Context) <-chan struct{}
+	Options() map[string]interface{}
 }
 
 type Operator interface {
