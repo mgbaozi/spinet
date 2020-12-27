@@ -16,7 +16,7 @@ const (
 	ValueTypeConstant ValueType = "constant"
 	ValueTypeVariable ValueType = "variable"
 	ValueTypeTemplate ValueType = "template"
-	ValueTypeMagic    ValueType = "magic"
+	ValueTypeBuildIn  ValueType = "buildin"
 	ValueTypeMap      ValueType = "map"
 )
 
@@ -30,7 +30,7 @@ const (
 
 func (vt ValueType) IsValid() bool {
 	switch vt {
-	case ValueTypeConstant, ValueTypeVariable, ValueTypeTemplate, ValueTypeMagic, ValueTypeMap:
+	case ValueTypeConstant, ValueTypeVariable, ValueTypeTemplate, ValueTypeBuildIn, ValueTypeMap:
 		return true
 	default:
 		return false
@@ -92,7 +92,7 @@ func detectValueTypeFromString(content string) ValueType {
 	if strings.HasPrefix(content, "${") && strings.HasSuffix(content, "}") {
 		return ValueTypeTemplate
 	}
-	return ValueTypeMagic
+	return ValueTypeBuildIn
 }
 
 func detectValueTypeFromMap(content map[string]interface{}) ValueType {
@@ -152,7 +152,7 @@ func getValueSource(prefix string) ValueSource {
 func parseMagicVariable(content string) Value {
 	name := content[1:]
 	return Value{
-		Type:  ValueTypeMagic,
+		Type:  ValueTypeBuildIn,
 		Value: name,
 	}
 }
@@ -180,7 +180,7 @@ func ParseValue(content interface{}) Value {
 		switch valueType {
 		case ValueTypeVariable:
 			return parseVariable(str)
-		case ValueTypeMagic:
+		case ValueTypeBuildIn:
 			return parseMagicVariable(str)
 		case ValueTypeTemplate:
 			return parseTemplate(str)

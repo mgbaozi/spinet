@@ -16,6 +16,7 @@ func init() {
 		Contains{},
 		And{},
 		Or{},
+		Not{},
 	)
 }
 
@@ -119,4 +120,27 @@ func (op Or) Do(values []interface{}) (res bool, err error) {
 		}
 	}
 	return false, nil
+}
+
+type Not struct{}
+
+func (Not) Name() string {
+	return "not"
+}
+
+//TODO: operator not should only receive one value
+func (op Not) Do(values []interface{}) (res bool, err error) {
+	defer func() {
+		logOperatorResult(op.Name(), res, err)
+	}()
+	for _, value := range values {
+		if res, ok := value.(bool); ok {
+			if res {
+				return false, nil
+			}
+		} else {
+			return false, errors.New("operator 'Not' execute failed: can't convert value to boolean")
+		}
+	}
+	return true, nil
 }
