@@ -25,6 +25,7 @@ func SerializeTask(task models.Task) (res Task) {
 
 func SerializeTrigger(trigger models.Trigger) (res Trigger) {
 	res.Type = trigger.TriggerName()
+	//TODO: do not use Options function
 	res.Options = trigger.Options()
 	return
 }
@@ -32,14 +33,15 @@ func SerializeTrigger(trigger models.Trigger) (res Trigger) {
 func SerializeStep(step models.Step) (res Step) {
 	app := step.App
 	res.App = app.AppName()
+	//TODO: do not use Options function
 	res.Options = app.Options()
 	for _, condition := range step.Conditions {
 		res.Conditions = append(res.Conditions, SerializeCondition(condition))
 	}
 	//TODO use origin style value
 	res.Mapper = make(map[string]interface{})
-	for key, mapper := range step.Mapper {
-		res.Mapper[key] = mapper.Format()
+	for key, value := range step.Mapper {
+		res.Mapper[key] = value.Format()
 	}
 	for _, dep := range step.Dependencies {
 		res.Dependencies = append(res.Dependencies, SerializeStep(dep))
