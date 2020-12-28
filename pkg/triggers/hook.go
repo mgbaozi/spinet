@@ -61,8 +61,8 @@ func (hook *Hook) Options() map[string]interface{} {
 	return hook.options
 }
 
-func (hook *Hook) Context() models.Context {
-	return *hook.ctx
+func (hook *Hook) Meta() models.Meta {
+	return hook.ctx.Meta
 }
 
 func (hook *Hook) Plural() string {

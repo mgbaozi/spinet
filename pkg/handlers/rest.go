@@ -16,8 +16,7 @@ func init() {
 var resource *Resource
 
 type RestHandler interface {
-	//TODO: Context -> Meta
-	Context() models.Context
+	Meta() models.Meta
 	Name() string
 	Plural() string
 	Methods() []string
@@ -29,8 +28,8 @@ func resourceKey(namespace, task, plural, name string) string {
 }
 
 func restHandlerKey(handler RestHandler) string {
-	ctx := handler.Context()
-	return resourceKey(ctx.Meta.Namespace, ctx.Meta.Name, handler.Plural(), handler.Name())
+	meta := handler.Meta()
+	return resourceKey(meta.Namespace, meta.Name, handler.Plural(), handler.Name())
 }
 
 type Resource struct {

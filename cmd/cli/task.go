@@ -19,7 +19,8 @@ func standAloneTask(c *cli.Context) error {
 		return err
 	}
 	if !dryRun {
-		go serveHTTP(port)
+		ws := getGoEcho()
+		go serveHTTP(ws, port)
 		task.Start()
 	}
 	return nil

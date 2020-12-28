@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func serveGoEcho(port int) error {
+func getGoEcho() *echo.Echo {
 	ws := echo.New()
 	ws.HideBanner = true
 	ws.HidePort = true
@@ -29,14 +29,14 @@ func serveGoEcho(port int) error {
 			ws.Add(strings.ToUpper(method), path, handler)
 		}
 	}
-	address := fmt.Sprintf(":%d", port)
-	klog.V(2).Infof("http server started on %s", address)
-	return ws.Start(address)
+	return ws
 }
 
-func serveHTTP(port int) {
+func serveHTTP(ws *echo.Echo, port int) {
 	if port > 0 {
-		klog.Fatal(serveGoEcho(port))
+		address := fmt.Sprintf(":%d", port)
+		klog.V(2).Infof("http server started on %s", address)
+		klog.Fatal(ws.Start(address))
 	} else {
 		klog.Warning("Running without http server, hook and http output is not available...")
 	}

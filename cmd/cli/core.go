@@ -1,43 +1,40 @@
 package main
 
 import (
-	"github.com/mgbaozi/spinet/pkg/apps"
+	"github.com/labstack/echo/v4"
 	"github.com/mgbaozi/spinet/pkg/models"
-	"github.com/mgbaozi/spinet/pkg/operators"
-	"github.com/mgbaozi/spinet/pkg/triggers"
 	"github.com/urfave/cli/v2"
+	"k8s.io/klog/v2"
+	"net/http"
 )
 
-func core(c *cli.Context) error {
-	task := &models.Task{
-		Triggers: []models.Trigger{
-			triggers.NewTimer(map[string]interface{}{
-				"period": 10,
-			}),
-		},
-		Inputs: []models.Step{
-			{
-				App: &apps.Simple{},
-				Conditions: []models.Condition{
-					{
-						Operator: operators.EQ{},
-						Values: []models.Value{
-							{Type: "variable", Value: "content"},
-							{Type: "constant", Value: "apple"},
-						},
-					},
-				},
-			},
-		},
-		Outputs: []models.Step{
-			{
-				App: &apps.Simple{
-					Content: "ok",
-				},
-			},
-		},
-		Context: models.NewContext(),
+type Cluster struct {
+	Resource models.Resource
+}
+
+func NewCluster() *Cluster {
+	return &Cluster{
+		Resource: models.NewResource(),
 	}
-	task.Start()
+}
+
+func (cluster *Cluster) ListNamespaces(c echo.Context) error {
+	namespaces := cluster.Resource.ListNamespaces()
+	res := make([]string, 0)
+	for _, ns := range namespaces {
+		res = append(res, ns.Name)
+	}
+	klog.V(7).Infof("List namespaces handler return %v", res)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"data": res,
+	})
+}
+
+func core(c *cli.Context) error {
+	ws := getGoEcho()
+	cluster := NewCluster()
+	// cluster.Resource.CreateNamespace("default")
+	ws.GET("/api/namespaces", cluster.ListNamespaces)
+	serveHTTP(ws, port)
 	return nil
 }
