@@ -11,28 +11,21 @@ mod:
 	go build ./...
 
 .PHONY: build
-build: api cli
-#build: api cli
+build: cli
 
 # .PHONY: generate
 # generate:
 # 	go generate ./ent
 
 .PHONY: run
-run: api
-	bin/api
-
-.PHONY: api
-api: bin/api
+run: bin/spictl
+	bin/spictl
 
 .PHONY: cli
-cli: bin/cli
+cli: bin/spictl
 
-bin/api: cmd/api/*.go pkg/**/*.go
-	$(env) go build -o bin/api ./cmd/api
-
-bin/cli: cmd/cli/*.go pkg/**/*.go
-	$(env) go build -o bin/cli ./cmd/cli
+bin/spictl: cmd/cli/*.go pkg/**/*.go
+	$(env) go build -o bin/spictl ./cmd/cli
 
 
 .PHONY: clean
