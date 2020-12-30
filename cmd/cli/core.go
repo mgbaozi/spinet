@@ -59,6 +59,17 @@ func (cluster *Cluster) GetTask(c echo.Context) error {
 	})
 }
 
+func ListApps(c echo.Context) error {
+	apps := models.GetApps()
+	res := make([]string, 0)
+	for _, app := range apps {
+		res = append(res, app.AppName())
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"data": res,
+	})
+}
+
 func core(c *cli.Context) error {
 	ws := getGoEcho()
 	cluster := NewCluster()
@@ -66,6 +77,7 @@ func core(c *cli.Context) error {
 	ws.GET("/api/namespaces", cluster.ListNamespaces)
 	ws.GET("/api/namespaces/:namespace/tasks", cluster.ListTasks)
 	ws.GET("/api/namespaces/:namespace/tasks/:task", cluster.GetTask)
+	ws.GET("/api/apps", ListApps)
 	serveHTTP(ws, port)
 	return nil
 }

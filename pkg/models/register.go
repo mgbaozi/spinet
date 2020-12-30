@@ -112,3 +112,11 @@ func NewBuildInVariable(name string, value interface{}) BuildInVariable {
 func GetHandlers() []Handler {
 	return GetRegisteredTypes().Handlers
 }
+
+func GetApps() []App {
+	var res []App
+	for _, app := range GetRegisteredTypes().Apps {
+		res = append(res, app)
+	}
+	return res
+}
