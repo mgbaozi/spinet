@@ -30,11 +30,42 @@ func (cluster *Cluster) ListNamespaces(c echo.Context) error {
 	})
 }
 
+func (cluster *Cluster) ListTasks(c echo.Context) error {
+	namespace := c.Param("namespace")
+	tasks, err := cluster.Resource.ListTasks(namespace)
+	if err != nil {
+		return err
+	}
+	res := make([]string, 0)
+	for _, task := range tasks {
+		res = append(res, task.Name)
+	}
+	klog.V(7).Infof("List tasks handler return %v", res)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"data": res,
+	})
+}
+
+func (cluster *Cluster) GetTask(c echo.Context) error {
+	namespace := c.Param("namespace")
+	name := c.Param("task")
+	res, err := cluster.Resource.GetTask(name, namespace)
+	if err != nil {
+		return err
+	}
+	klog.V(7).Infof("Get task handler return %v", res)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"data": res,
+	})
+}
+
 func core(c *cli.Context) error {
 	ws := getGoEcho()
 	cluster := NewCluster()
 	// cluster.Resource.CreateNamespace("default")
 	ws.GET("/api/namespaces", cluster.ListNamespaces)
+	ws.GET("/api/namespaces/:namespace/tasks", cluster.ListTasks)
+	ws.GET("/api/namespaces/:namespace/tasks/:task", cluster.GetTask)
 	serveHTTP(ws, port)
 	return nil
 }

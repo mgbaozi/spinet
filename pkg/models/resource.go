@@ -25,6 +25,13 @@ func (ns Namespace) GetTask(name string) (*Task, error) {
 	}
 }
 
+func (ns Namespace) ListTasks() (res []*Task) {
+	for _, task := range ns.Tasks {
+		res = append(res, task)
+	}
+	return res
+}
+
 func (ns Namespace) CreateTask(task *Task) error {
 	if _, ok := ns.Tasks[task.Name]; !ok {
 		ns.Tasks[task.Name] = task
@@ -62,6 +69,17 @@ func (res Resource) ListNamespaces() (result []Namespace) {
 		result = append(result, value)
 	}
 	return
+}
+
+func (res Resource) ListTasks(namespace string) ([]*Task, error) {
+	if len(namespace) == 0 {
+		namespace = "default"
+	}
+	if ns, err := res.GetNamespace(namespace); err != nil {
+		return nil, err
+	} else {
+		return ns.ListTasks(), nil
+	}
 }
 
 func (res Resource) GetTask(name, namespace string) (*Task, error) {
