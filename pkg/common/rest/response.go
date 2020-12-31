@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 type Meta struct {
 	Code    int    `json:"code"`

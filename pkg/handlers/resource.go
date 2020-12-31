@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"github.com/mgbaozi/spinet/pkg/common/rest"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
 	"net/http"
@@ -15,30 +16,13 @@ func init() {
 
 var resource *Resource
 
-type RestHandler interface {
-	Meta() models.Meta
-	Name() string
-	Plural() string
-	Methods() []string
-	Handler(req, resp interface{}) error
-}
-
-func resourceKey(namespace, task, plural, name string) string {
-	return fmt.Sprintf("%s.%s.%s.%s", namespace, task, plural, name)
-}
-
-func restHandlerKey(handler RestHandler) string {
-	meta := handler.Meta()
-	return resourceKey(meta.Namespace, meta.Name, handler.Plural(), handler.Name())
-}
-
 type Resource struct {
-	handlers map[string]RestHandler
+	handlers map[string]CustomHandler
 }
 
 func newResource() *Resource {
 	return &Resource{
-		handlers: make(map[string]RestHandler),
+		handlers: make(map[string]CustomHandler),
 	}
 }
 
@@ -49,12 +33,21 @@ func GetResource() *Resource {
 	return resource
 }
 
-func Register(handler RestHandler) {
+func resourceKey(namespace, task, plural, name string) string {
+	return fmt.Sprintf("%s.%s.%s.%s", namespace, task, plural, name)
+}
+
+func restHandlerKey(handler CustomHandler) string {
+	meta := handler.Meta()
+	return resourceKey(meta.Namespace, meta.Name, handler.Plural(), handler.Name())
+}
+
+func Register(handler CustomHandler) {
 	resource := GetResource()
 	resource.Register(handler)
 }
 
-func (r *Resource) Register(handler RestHandler) {
+func (r *Resource) Register(handler CustomHandler) {
 	key := restHandlerKey(handler)
 	klog.V(2).Infof("Register rest handler %s", key)
 	r.handlers[key] = handler
@@ -81,7 +74,7 @@ func (r *Resource) Params() []string {
 	return []string{":plural", ":name"}
 }
 
-func methodAllowed(method string, handler RestHandler) bool {
+func methodAllowed(method string, handler CustomHandler) bool {
 	for _, item := range handler.Methods() {
 		if method == item {
 			return true
@@ -94,8 +87,8 @@ func jsonResponse(c echo.Context, code int, message string, data interface{}) er
 	if data == nil {
 		data = map[string]interface{}{}
 	}
-	return c.JSON(code, Response{
-		Meta: Meta{
+	return c.JSON(code, rest.Response{
+		Meta: rest.Meta{
 			Code:    code,
 			Message: message,
 		},
@@ -109,7 +102,7 @@ func (r *Resource) RestHandler(c echo.Context) error {
 	plural := c.Param("plural")
 	name := c.Param("name")
 	key := resourceKey(namespace, task, plural, name)
-	klog.V(4).Infof("RestHandler for key %s", key)
+	klog.V(4).Infof("CustomHandler for key %s", key)
 	handler, ok := r.handlers[key]
 	var req, resp interface{}
 	if !ok {

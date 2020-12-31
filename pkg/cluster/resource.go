@@ -1,23 +1,24 @@
-package models
+package cluster
 
 import (
 	"errors"
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/models"
 )
 
 type Namespace struct {
 	Name  string
-	Tasks map[string]*Task
+	Tasks map[string]*models.Task
 }
 
 func NewNamespace(name string) Namespace {
 	return Namespace{
 		name,
-		make(map[string]*Task),
+		make(map[string]*models.Task),
 	}
 }
 
-func (ns Namespace) GetTask(name string) (*Task, error) {
+func (ns Namespace) GetTask(name string) (*models.Task, error) {
 	if task, ok := ns.Tasks[name]; ok {
 		return task, nil
 	} else {
@@ -25,14 +26,14 @@ func (ns Namespace) GetTask(name string) (*Task, error) {
 	}
 }
 
-func (ns Namespace) ListTasks() (res []*Task) {
+func (ns Namespace) ListTasks() (res []*models.Task) {
 	for _, task := range ns.Tasks {
 		res = append(res, task)
 	}
 	return res
 }
 
-func (ns Namespace) CreateTask(task *Task) error {
+func (ns Namespace) CreateTask(task *models.Task) error {
 	if _, ok := ns.Tasks[task.Name]; !ok {
 		ns.Tasks[task.Name] = task
 		return nil
@@ -71,7 +72,7 @@ func (res Resource) ListNamespaces() (result []Namespace) {
 	return
 }
 
-func (res Resource) ListTasks(namespace string) ([]*Task, error) {
+func (res Resource) ListTasks(namespace string) ([]*models.Task, error) {
 	if len(namespace) == 0 {
 		namespace = "default"
 	}
@@ -82,7 +83,7 @@ func (res Resource) ListTasks(namespace string) ([]*Task, error) {
 	}
 }
 
-func (res Resource) GetTask(name, namespace string) (*Task, error) {
+func (res Resource) GetTask(name, namespace string) (*models.Task, error) {
 	if len(namespace) == 0 {
 		namespace = "default"
 	}
@@ -93,7 +94,7 @@ func (res Resource) GetTask(name, namespace string) (*Task, error) {
 	}
 }
 
-func (res Resource) CreateTask(task *Task) error {
+func (res Resource) CreateTask(task *models.Task) error {
 	if len(task.Namespace) == 0 {
 		task.Namespace = "default"
 	}

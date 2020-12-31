@@ -126,30 +126,7 @@ func detectValueType(content interface{}) ValueType {
 	return ValueTypeConstant
 }
 
-func isVariable(content string) bool {
-	// $.content || #.content
-	return content == "$" || content == "#" || strings.HasPrefix(content, "$.") || strings.HasPrefix(content, "#.")
-}
-
-func isTemplate(content string) bool {
-	// ${example template {{.data}} value}
-	return (strings.HasPrefix(content, "${") || strings.HasPrefix(content, "#{")) &&
-		strings.HasSuffix(content, "}")
-}
-
-func getValueSource(prefix string) ValueSource {
-	switch prefix {
-	case "#":
-		return ValueSourceApp
-	case "$":
-		return ValueSourceDictionary
-	default:
-		klog.Errorf("Error when parse value with prefix: %s", prefix)
-		return ValueSourceNone
-	}
-}
-
-func parseMagicVariable(content string) Value {
+func parseBuildInVariable(content string) Value {
 	name := content[1:]
 	return Value{
 		Type:  ValueTypeBuildIn,
@@ -181,7 +158,7 @@ func ParseValue(content interface{}) Value {
 		case ValueTypeVariable:
 			return parseVariable(str)
 		case ValueTypeBuildIn:
-			return parseMagicVariable(str)
+			return parseBuildInVariable(str)
 		case ValueTypeTemplate:
 			return parseTemplate(str)
 		default:
@@ -216,64 +193,11 @@ func ParseValue(content interface{}) Value {
 	return constantValue(content)
 }
 
-//func ParseValue(content interface{}) Value {
-//	klog.V(6).Infof("Parse value: %v", content)
-//	if str, ok := content.(string); ok {
-//		klog.V(7).Infof("Value type is string: %s", str)
-//		if isVariable(str) {
-//			return parseVariable(str)
-//		}
-//		if isTemplate(str) {
-//			return Value{
-//				Type:   ValueTypeTemplate,
-//				Source: getValueSource(string(str[0])),
-//				Value:  str[2 : len(str)-1],
-//			}
-//		}
-//	}
-//	if dict, ok := content.(map[string]interface{}); ok {
-//		var value Value
-//		if t, ok := dict["type"]; ok {
-//			if value.Type, ok = toValueType(t); ok {
-//				if value.Type == ValueTypeVariable || value.Type == ValueTypeTemplate {
-//					if s, ok := dict["source"]; ok {
-//						if value.Source, ok = toValueSource(s); !ok {
-//							klog.V(2).Infof("Wrong value source %v, fallback to dictionary", value.Source)
-//							value.Source = ValueSourceDictionary
-//						}
-//					} else {
-//						value.Source = ValueSourceDictionary
-//					}
-//				}
-//				value.Value = dict["value"]
-//				return value
-//			} else {
-//				klog.V(8).Infof("Wrong value type %v", t)
-//			}
-//		}
-//		// Parse as non-value map
-//		res := make(map[string]interface{})
-//		for key, item := range dict {
-//			res[key] = ParseValue(item)
-//		}
-//		return Value{
-//			Type:  ValueTypeMap,
-//			Value: res,
-//		}
-//	}
-//	return Value{
-//		Type:   ValueTypeConstant,
-//		Source: ValueSourceNone,
-//		Value:  content,
-//	}
-//}
-
-//FIXME: formatter is wrong now
 func (value Value) Format() interface{} {
-	if value.Type == ValueTypeConstant {
+	switch value.Type {
+	case ValueTypeConstant:
 		return value.Value
-	}
-	if value.Type == ValueTypeMap {
+	case ValueTypeMap:
 		values := make(map[string]interface{})
 		if dict, ok := value.Value.(map[string]interface{}); ok {
 			for key, item := range dict {
@@ -285,30 +209,29 @@ func (value Value) Format() interface{} {
 			}
 		}
 		return values
-	}
-
-	var prefix = "$"
-
-	if value.Type == ValueTypeTemplate {
-		// TODO: check if value is string
-		return fmt.Sprintf("%s{%v}", prefix, value.Value)
-	}
-	var format string
-	if str, ok := value.Value.(string); ok {
-		format = str
-	} else if keys, ok := value.Value.([]interface{}); ok {
-		var values []string
-		for _, key := range keys {
-			if str, ok := key.(string); ok {
-				values = append(values, str)
-			} else if num, ok := key.(int); ok {
-				values = append(values, strconv.Itoa(num))
+	case ValueTypeTemplate:
+		return fmt.Sprintf("${%v}", value.Value)
+	case ValueTypeBuildIn:
+		return fmt.Sprintf("$%v", value.Value)
+	case ValueTypeVariable:
+		var format string
+		if str, ok := value.Value.(string); ok {
+			format = str
+		} else if keys, ok := value.Value.([]interface{}); ok {
+			var values []string
+			for _, key := range keys {
+				if str, ok := key.(string); ok {
+					values = append(values, str)
+				} else if num, ok := key.(int); ok {
+					values = append(values, strconv.Itoa(num))
+				}
 			}
+			format = strings.Join(values, ".")
 		}
-		format = strings.Join(values, ".")
+		return fmt.Sprintf("$.%s", format)
+	default:
+		return value.Value
 	}
-
-	return fmt.Sprintf("%s.%s", prefix, format)
 }
 
 func merge(res map[string]interface{}, item interface{}) map[string]interface{} {
@@ -323,18 +246,6 @@ func merge(res map[string]interface{}, item interface{}) map[string]interface{} 
 			res[key] = value
 		}
 	}
-	return res
-}
-
-func mergeData(dictionary interface{}, appdata interface{}, super interface{}) map[string]interface{} {
-	res := map[string]interface{}{
-		"__dict__":  dictionary,
-		"__app__":   appdata,
-		"__super__": super,
-	}
-	merge(res, dictionary)
-	merge(res, appdata)
-	merge(res, super)
 	return res
 }
 

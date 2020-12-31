@@ -50,7 +50,6 @@ type Handler interface {
 	Type() HandlerType
 	Methods() []string
 	Params() []string
-	// TODO: use func (params ...interface{}) error
 	Handler() func(c echo.Context) error
 }
 
