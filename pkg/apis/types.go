@@ -3,6 +3,7 @@ package apis
 import "github.com/mgbaozi/spinet/pkg/models"
 
 type Meta struct {
+	Kind      string `json:"kind" yaml:"kind"`
 	Name      string `json:"name" yaml:"name"`
 	Namespace string `json:"namespace" yaml:"namespace"`
 }
