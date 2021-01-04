@@ -183,3 +183,13 @@ func NewContextWithDictionary(dictionary map[string]interface{}) Context {
 	}
 	return context
 }
+
+func (ctx Context) Mapper(mapper Mapper) {
+	for key, value := range mapper {
+		//TODO: super data
+		if v, err := value.Extract(ctx); err == nil {
+			ctx.Dictionary[key] = v
+			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
+		}
+	}
+}

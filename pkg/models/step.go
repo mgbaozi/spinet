@@ -29,7 +29,7 @@ func (step *Step) Process(ctx Context) (res bool, err error) {
 		return false, err
 	}
 	ctx.SetAppData(data)
-	ProcessMapper(ctx, step.Mapper)
+	ctx.Mapper(step.Mapper)
 	return step.processConditions(ctx)
 }
 

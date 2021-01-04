@@ -87,7 +87,7 @@ func (hook *Hook) run() {
 }
 
 func (hook *Hook) Handler(req, resp interface{}) error {
-	dict := models.BaseProcessMapper(hook.Mapper, req)
+	dict := models.ProcessMapper(hook.Mapper, req)
 	//TODO: specify resp value
 	val := reflect.ValueOf(resp)
 	if val.Kind() == reflect.Ptr {

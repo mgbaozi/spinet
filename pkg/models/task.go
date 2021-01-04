@@ -83,28 +83,6 @@ func (task *Task) prepare(data map[string]interface{}) {
 	task.Context.Meta = task.Meta
 }
 
-func ProcessMapper(ctx Context, mapper Mapper) {
-	for key, value := range mapper {
-		//TODO: super data
-		if v, err := value.Extract(ctx); err == nil {
-			ctx.Dictionary[key] = v
-			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
-		}
-	}
-}
-
-func BaseProcessMapper(mapper Mapper, variables interface{}) map[string]interface{} {
-	res := make(map[string]interface{})
-	for key, value := range mapper {
-		//TODO: super data
-		if v, err := value.Extract(variables); err == nil {
-			res[key] = v
-			klog.V(2).Infof("Mapper set value %v to key %s", v, key)
-		}
-	}
-	return res
-}
-
 func (task *Task) processConditions() (bool, error) {
 	//FIXME
 	return ProcessConditions(task.Context, NewOperator("and"), task.Conditions)
