@@ -24,7 +24,7 @@ func TaskFromYamlFile(filename string) (Task, error) {
 
 func (task *Task) Validate() *Task {
 	if len(task.Namespace) == 0 {
-		task.Namespace = "default"
+		task.Namespace = models.DefaultNamespace
 	}
 	return task
 }

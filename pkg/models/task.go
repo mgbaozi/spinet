@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const DefaultNamespace = "default"
+
 type Meta struct {
 	Name      string
 	Namespace string

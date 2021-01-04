@@ -18,7 +18,7 @@ func ErrorHandler(next echo.HandlerFunc) echo.HandlerFunc {
 			if e, ok := err.(*echo.HTTPError); ok {
 				return c.JSON(e.Code, rest.NewResponse(e.Code, e.Message.(string), nil))
 			}
-			return c.JSON(http.StatusNotFound, rest.NewResponse(http.StatusNotFound, "", nil))
+			return c.JSON(http.StatusBadRequest, rest.NewResponse(http.StatusBadRequest, "", nil))
 		}
 		return err
 
@@ -29,14 +29,18 @@ func core(c *cli.Context) error {
 	ws := getGoEcho()
 	ws.Use(ErrorHandler)
 	cl := cluster.NewCluster()
-	// cl.Resource.CreateNamespace("default")
-	ws.GET("/api/namespaces", cl.ListNamespaces)
-	ws.POST("/api/namespaces", cl.CreateNamespace)
-	ws.GET("/api/namespaces/:namespace/tasks", cl.ListTasks)
-	ws.POST("/api/namespaces/:namespace/tasks", cl.CreateTask)
-	ws.GET("/api/namespaces/:namespace/tasks/:task", cl.GetTask)
-	ws.GET("/api/apps", cluster.ListApps)
-	ws.POST("/api/apps", cluster.CreateApp)
+	if _, err := cl.Resource.GetNamespace("default"); err != nil {
+		cl.Resource.CreateNamespace("default")
+	}
+	api := ws.Group("/api")
+	api.GET("/namespaces", cl.ListNamespaces)
+	api.POST("/namespaces", cl.CreateNamespace)
+	api.GET("/apps", cluster.ListApps)
+	api.POST("/apps", cluster.CreateApp)
+	ns := api.Group("/namespaces")
+	ns.GET("/:namespace/tasks", cl.ListTasks)
+	ns.POST("/:namespace/tasks", cl.CreateTask)
+	ns.GET("/:namespace/tasks/:task", cl.GetTask)
 	serveHTTP(ws, port)
 	return nil
 }

@@ -29,6 +29,7 @@ func NewHookOptions(options map[string]interface{}) HookOptions {
 	if nameOption, ok := options["name"]; ok {
 		name = nameOption.(string)
 	} else {
+		//TODO: use hook-index as name
 		name = "default"
 	}
 	return HookOptions{

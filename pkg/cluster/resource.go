@@ -38,7 +38,7 @@ func (ns Namespace) CreateTask(task *models.Task) error {
 		ns.Tasks[task.Name] = task
 		return nil
 	} else {
-		return errors.New(fmt.Sprintf("task %s in namespace %s is already exists", task.Name, ns.Name))
+		return errors.New(fmt.Sprintf("task `%s` in namespace `%s` is already exists", task.Name, ns.Name))
 	}
 }
 
@@ -53,15 +53,18 @@ func (res Resource) CreateNamespace(name string) error {
 		res[name] = NewNamespace(name)
 		return nil
 	} else {
-		return errors.New(fmt.Sprintf("namespace %s already exists", name))
+		return errors.New(fmt.Sprintf("namespace `%s` already exists", name))
 	}
 }
 
 func (res Resource) GetNamespace(name string) (Namespace, error) {
+	if name == "" {
+		name = models.DefaultNamespace
+	}
 	if ns, ok := res[name]; ok {
 		return ns, nil
 	} else {
-		return ns, errors.New(fmt.Sprintf("namespace %s not found", name))
+		return ns, errors.New(fmt.Sprintf("namespace `%s` not found", name))
 	}
 }
 
@@ -73,9 +76,6 @@ func (res Resource) ListNamespaces() (result []Namespace) {
 }
 
 func (res Resource) ListTasks(namespace string) ([]*models.Task, error) {
-	if len(namespace) == 0 {
-		namespace = "default"
-	}
 	if ns, err := res.GetNamespace(namespace); err != nil {
 		return nil, err
 	} else {
@@ -84,9 +84,6 @@ func (res Resource) ListTasks(namespace string) ([]*models.Task, error) {
 }
 
 func (res Resource) GetTask(name, namespace string) (*models.Task, error) {
-	if len(namespace) == 0 {
-		namespace = "default"
-	}
 	if ns, err := res.GetNamespace(namespace); err != nil {
 		return nil, err
 	} else {
@@ -95,9 +92,6 @@ func (res Resource) GetTask(name, namespace string) (*models.Task, error) {
 }
 
 func (res Resource) CreateTask(task *models.Task) error {
-	if len(task.Namespace) == 0 {
-		task.Namespace = "default"
-	}
 	if ns, err := res.GetNamespace(task.Namespace); err != nil {
 		return err
 	} else {
