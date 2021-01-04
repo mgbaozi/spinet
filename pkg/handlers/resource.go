@@ -84,16 +84,7 @@ func methodAllowed(method string, handler CustomHandler) bool {
 }
 
 func jsonResponse(c echo.Context, code int, message string, data interface{}) error {
-	if data == nil {
-		data = map[string]interface{}{}
-	}
-	return c.JSON(code, rest.Response{
-		Meta: rest.Meta{
-			Code:    code,
-			Message: message,
-		},
-		Data: data,
-	})
+	return c.JSON(code, rest.NewResponse(code, message, data))
 }
 
 func (r *Resource) RestHandler(c echo.Context) error {
