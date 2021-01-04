@@ -3,30 +3,22 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/mgbaozi/spinet/pkg/cluster"
-	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/common/rest"
 	"github.com/urfave/cli/v2"
 	"net/http"
 )
-
-func ListApps(c echo.Context) error {
-	apps := models.GetApps()
-	res := make([]string, 0)
-	for _, app := range apps {
-		res = append(res, app.AppName())
-	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"data": res,
-	})
-}
 
 func ErrorHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		err := next(c)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"error":   err.Error(),
-				"message": "handler failed with error",
-			})
+			if e, ok := err.(*rest.HandlerError); ok {
+				return c.JSON(e.Code, rest.ErrorResponse(e))
+			}
+			if e, ok := err.(*echo.HTTPError); ok {
+				return c.JSON(e.Code, rest.NewResponse(e.Code, e.Message.(string), nil))
+			}
+			return c.JSON(http.StatusNotFound, rest.NewResponse(http.StatusNotFound, "", nil))
 		}
 		return err
 
@@ -41,8 +33,10 @@ func core(c *cli.Context) error {
 	ws.GET("/api/namespaces", cl.ListNamespaces)
 	ws.POST("/api/namespaces", cl.CreateNamespace)
 	ws.GET("/api/namespaces/:namespace/tasks", cl.ListTasks)
+	ws.POST("/api/namespaces/:namespace/tasks", cl.CreateTask)
 	ws.GET("/api/namespaces/:namespace/tasks/:task", cl.GetTask)
-	ws.GET("/api/apps", ListApps)
+	ws.GET("/api/apps", cluster.ListApps)
+	ws.POST("/api/apps", cluster.CreateApp)
 	serveHTTP(ws, port)
 	return nil
 }

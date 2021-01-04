@@ -47,3 +47,9 @@ type CustomApp struct {
 	Task  `json:",inline" yaml:",inline"`
 	Modes []models.AppMode `json:"modes" yaml:"modes"`
 }
+
+type App struct {
+	Name    string                 `json:"name" yaml:"name"`
+	Options map[string]interface{} `json:"options" yaml:"options"`
+	Modes   []models.AppMode       `json:"modes" yaml:"modes"`
+}

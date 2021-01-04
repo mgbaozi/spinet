@@ -36,3 +36,7 @@ func NewResponse(code int, message string, data interface{}) Response {
 		Data: data,
 	}
 }
+
+func ErrorResponse(err *HandlerError) Response {
+	return NewResponse(err.Code, err.Error(), nil)
+}

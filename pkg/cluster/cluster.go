@@ -64,14 +64,14 @@ func (cluster *Cluster) CreateTask(c echo.Context) error {
 	var request apis.Task
 	err := json.NewDecoder(c.Request().Body).Decode(&request)
 	if err != nil {
-		return jsonResponse(c, http.StatusBadRequest, err.Error(), nil)
+		return rest.WarpError(err, http.StatusBadRequest, "decode failed")
 	}
 	var task models.Task
 	if task, err = request.Parse(); err != nil {
-		return jsonResponse(c, http.StatusBadRequest, err.Error(), nil)
+		return rest.WarpError(err, http.StatusBadRequest, "parse failed")
 	}
 	if err = cluster.Resource.CreateTask(&task); err != nil {
-		return jsonResponse(c, http.StatusConflict, err.Error(), nil)
+		return rest.WarpError(err, http.StatusConflict, "create failed")
 	}
 	return jsonResponse(c, http.StatusOK, "", request.Validate())
 }
@@ -80,15 +80,42 @@ func (cluster *Cluster) CreateNamespace(c echo.Context) error {
 	var request apis.Meta
 	err := json.NewDecoder(c.Request().Body).Decode(&request)
 	if err != nil {
-		return jsonResponse(c, http.StatusBadRequest, err.Error(), nil)
+		return rest.WarpError(err, http.StatusBadRequest, "decode failed")
 	}
 	if request.Name == "" {
-		return jsonResponse(c, http.StatusBadRequest, "name can't be empty", nil)
+		return rest.NewError(http.StatusBadRequest, "name can't be empty")
 	}
 	if err = cluster.Resource.CreateNamespace(request.Name); err != nil {
-		return jsonResponse(c, http.StatusConflict, err.Error(), nil)
+		return rest.WarpError(err, http.StatusConflict, "create failed")
 	}
 	return jsonResponse(c, http.StatusOK, "", map[string]interface{}{
 		"name": request.Name,
 	})
+}
+
+func CreateApp(c echo.Context) error {
+	var request apis.CustomApp
+	err := json.NewDecoder(c.Request().Body).Decode(&request)
+	if err != nil {
+		return jsonResponse(c, http.StatusBadRequest, err.Error(), nil)
+	}
+	var app models.CustomApp
+	if app, err = request.Parse(); err != nil {
+		return jsonResponse(c, http.StatusBadRequest, err.Error(), nil)
+	}
+	models.RegisterApp(&app)
+	return jsonResponse(c, http.StatusOK, "", request.Validate())
+}
+
+func ListApps(c echo.Context) error {
+	apps := models.GetApps()
+	res := make([]apis.App, 0)
+	for _, item := range apps {
+		var app apis.App
+		app.Name = item.AppName()
+		app.Options = item.Options()
+		app.Modes = item.AppModes()
+		res = append(res, app)
+	}
+	return jsonResponse(c, http.StatusOK, "", res)
 }
