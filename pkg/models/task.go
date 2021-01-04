@@ -25,23 +25,26 @@ type Task struct {
 	Outputs    []Step
 	// TODO: versioned context
 	Context          Context
-	OriginDictionary map[string]interface{}
+	OriginDictionary map[string]Value
 }
 
 // set origin dictionary of task, it will set to context before every execution
 func (task *Task) SetDictionary(dictionary map[string]interface{}) {
+	task.OriginDictionary = make(map[string]Value)
 	if dictionary == nil {
 		dictionary = make(map[string]interface{})
 	}
-	task.OriginDictionary = dictionary
+	for key, item := range dictionary {
+		task.OriginDictionary[key] = ParseValue(item)
+	}
 }
 
 func (task *Task) Start() {
-	task.prepare()
 	if len(task.Triggers) == 0 {
 		klog.Errorf("Task %s.%s has no triggers, will never be called", task.Name, task.Namespace)
 		return
 	}
+	task.init()
 	//TODO: handle interrupt, timeout, heartbeats
 	cases := make([]reflect.SelectCase, len(task.Triggers))
 	for i, trigger := range task.Triggers {
@@ -49,18 +52,34 @@ func (task *Task) Start() {
 		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
 	}
 	for {
-		_, _, _ = reflect.Select(cases)
+		_, recv, _ := reflect.Select(cases)
+		// hookData := make(map[string]interface{})
+		hookData := recv.Interface().(map[string]interface{})
+		klog.V(4).Infof("trigger with data %v, %s", hookData, recv.Kind())
+		task.prepare(hookData)
 		task.Execute()
 		klog.V(9).Infof("%s", task.Context.Trace.String())
-		task.prepare()
 	}
 }
 
-func (task *Task) prepare() {
+func (task *Task) init() {
 	if task.OriginDictionary == nil {
-		task.OriginDictionary = make(map[string]interface{})
+		task.OriginDictionary = make(map[string]Value)
 	}
-	task.Context = NewContextWithDictionary(task.OriginDictionary)
+	task.Context = NewContext()
+	task.Context.Meta = task.Meta
+}
+
+func (task *Task) prepare(data map[string]interface{}) {
+	klog.V(4).Infof("Prepare task with initial data: %v", data)
+	dictionary := make(map[string]interface{})
+	for key, item := range task.OriginDictionary {
+		dictionary[key], _ = item.Extract(task.Context.BuildIn)
+	}
+	for key, item := range data {
+		dictionary[key] = item
+	}
+	task.Context = NewContextWithDictionary(dictionary)
 	task.Context.Meta = task.Meta
 }
 
@@ -72,6 +91,18 @@ func ProcessMapper(ctx Context, mapper Mapper) {
 			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
 		}
 	}
+}
+
+func BaseProcessMapper(mapper Mapper, variables interface{}) map[string]interface{} {
+	res := make(map[string]interface{})
+	for key, value := range mapper {
+		//TODO: super data
+		if v, err := value.Extract(variables); err == nil {
+			res[key] = v
+			klog.V(2).Infof("Mapper set value %v to key %s", v, key)
+		}
+	}
+	return res
 }
 
 func (task *Task) processConditions() (bool, error) {

@@ -22,6 +22,38 @@ $.__super__.__value__: value for current item
 $.__super__.__collection__: hole collection
 */
 
+func buildInVariables(override map[string]interface{}) map[string]interface{} {
+	res := make(map[string]interface{})
+	vars := GetBuildInVariables()
+	for name, item := range vars {
+		res[name] = item.New(nil).Data()
+	}
+	if override != nil {
+		for name, item := range override {
+			res[name] = item
+		}
+	}
+	return res
+}
+
+func parseBuildInVariable(content string) Value {
+	name := content[1:]
+	return Value{
+		Type:  ValueTypeBuildIn,
+		Value: name,
+	}
+}
+
+func extractBuildInVariable(value interface{}, variables map[string]interface{}) (res interface{}, err error) {
+	if str, ok := value.(string); ok {
+		if v, ok := variables[str]; ok {
+			return v, nil
+		}
+		return value, errors.New(fmt.Sprintf("build-in variable %s not found", str))
+	}
+	return nil, errors.New("wrong build-in variable format")
+}
+
 func parseVariable(str string) Value {
 	keys := strings.Split(str, ".")
 	klog.V(7).Infof("Value is a variable, split keys are: %v", keys)
@@ -70,5 +102,5 @@ func extractVariable(value interface{}, variables interface{}) (res interface{},
 		}
 		return result, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed convert value to string or list"))
+	return nil, errors.New(fmt.Sprintf("failed to convert value to string or list"))
 }

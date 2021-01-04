@@ -109,6 +109,10 @@ func NewBuildInVariable(name string, value interface{}) BuildInVariable {
 	return nil
 }
 
+func GetBuildInVariables() map[string]BuildInVariable {
+	return GetRegisteredTypes().BuildInVariables
+}
+
 func GetHandlers() []Handler {
 	return GetRegisteredTypes().Handlers
 }

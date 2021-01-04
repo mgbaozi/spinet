@@ -10,6 +10,7 @@ type MagicVariables map[string]interface{}
 type BaseContext struct {
 	Meta         Meta
 	Status       Status
+	BuildIn      map[string]interface{}
 	Dictionary   map[string]interface{}
 	AppData      map[string]interface{}
 	MagicVarData map[string]MagicVariables
@@ -29,6 +30,7 @@ func NewBaseContextWithDictionary(dictionary map[string]interface{}) *BaseContex
 	if dictionary != nil {
 		context.Dictionary = dictionary
 	}
+	context.BuildIn = buildInVariables(nil)
 	return context
 }
 
@@ -164,9 +166,10 @@ func (ctx Context) MergedData() map[string]interface{} {
 	appData, _ := ctx.GetAppData()
 	magicVariables, _ := ctx.GetMagicVariables()
 	res := map[string]interface{}{
-		"__dict__":  ctx.Dictionary,
-		"__app__":   appData,
-		"__magic__": magicVariables,
+		"__dict__":    ctx.Dictionary,
+		"__app__":     appData,
+		"__magic__":   magicVariables,
+		"__buildin__": ctx.BuildIn,
 	}
 	merge(res, ctx.Dictionary)
 	merge(res, appData)

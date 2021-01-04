@@ -57,9 +57,9 @@ type BuildInVariableTime struct {
 }
 
 func (BuildInVariableTime) New(value interface{}) models.BuildInVariable {
-	time := time.Now().Unix()
+	t := time.Now().Format(time.RFC3339)
 	return BuildInVariableTime{
-		time: time,
+		time: t,
 	}
 }
 

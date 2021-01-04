@@ -22,7 +22,7 @@ func NewTimerOptions(options map[string]interface{}) TimerOptions {
 
 type Timer struct {
 	TimerOptions
-	ch      chan struct{}
+	ch      chan map[string]interface{}
 	running bool
 	options map[string]interface{}
 	ctx     *models.Context
@@ -31,7 +31,7 @@ type Timer struct {
 func NewTimer(options map[string]interface{}) *Timer {
 	return &Timer{
 		TimerOptions: NewTimerOptions(options),
-		ch:           make(chan struct{}),
+		ch:           make(chan map[string]interface{}),
 	}
 }
 
@@ -54,12 +54,12 @@ func (timer *Timer) run() {
 		for {
 			_ = <-ch
 			klog.V(4).Info("Tick!")
-			timer.ch <- struct{}{}
+			timer.ch <- nil
 		}
 	}()
 }
 
-func (timer *Timer) Triggered(ctx *models.Context) <-chan struct{} {
+func (timer *Timer) Triggered(ctx *models.Context) <-chan map[string]interface{} {
 	timer.ctx = ctx
 	if !timer.running {
 		timer.running = true

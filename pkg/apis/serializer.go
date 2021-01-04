@@ -7,7 +7,7 @@ func SerializeTask(task models.Task) (res Task) {
 		Name:      task.Name,
 		Namespace: task.Namespace,
 	}
-	res.Dictionary = task.OriginDictionary
+	//FIXME res.Dictionary = task.OriginDictionary
 	for _, trigger := range task.Triggers {
 		res.Triggers = append(res.Triggers, SerializeTrigger(trigger))
 	}

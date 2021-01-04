@@ -1,6 +1,7 @@
 name: simple-task-example
 
 dictionary:
+  date: "$date"
   token: simple-token
 
 triggers:
@@ -34,3 +35,9 @@ outputs:
   - app: simple
     options:
       content: "$.token"
+  - app: simple
+    options:
+      content: "$.date"
+  - app: simple
+    options:
+      content: "$time"

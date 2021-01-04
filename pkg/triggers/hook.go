@@ -39,7 +39,7 @@ func NewHookOptions(options map[string]interface{}) HookOptions {
 
 type Hook struct {
 	HookOptions
-	ch      chan struct{}
+	ch      chan map[string]interface{}
 	running bool
 	options map[string]interface{}
 	ctx     *models.Context
@@ -48,7 +48,7 @@ type Hook struct {
 func NewHook(options map[string]interface{}) *Hook {
 	return &Hook{
 		HookOptions: NewHookOptions(options),
-		ch:          make(chan struct{}),
+		ch:          make(chan map[string]interface{}),
 		options:     options,
 	}
 }
@@ -87,20 +87,17 @@ func (hook *Hook) run() {
 }
 
 func (hook *Hook) Handler(req, resp interface{}) error {
-	//FIXME: context will be replaced
-	ctx := hook.ctx.Sub("handler", nil)
-	ctx.SetAppData(req)
-	models.ProcessMapper(ctx, hook.Mapper)
+	dict := models.BaseProcessMapper(hook.Mapper, req)
 	//TODO: specify resp value
 	val := reflect.ValueOf(resp)
 	if val.Kind() == reflect.Ptr {
 		val.Elem().Set(reflect.ValueOf(req))
 	}
-	hook.ch <- struct{}{}
+	hook.ch <- dict
 	return nil
 }
 
-func (hook *Hook) Triggered(ctx *models.Context) <-chan struct{} {
+func (hook *Hook) Triggered(ctx *models.Context) <-chan map[string]interface{} {
 	hook.ctx = ctx
 	if !hook.running {
 		hook.running = true

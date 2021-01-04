@@ -86,7 +86,7 @@ func detectValueTypeFromString(content string) ValueType {
 	if !strings.HasPrefix(content, "$") {
 		return ValueTypeConstant
 	}
-	if strings.HasPrefix(content, "$.") {
+	if content == "$" || strings.HasPrefix(content, "$.") {
 		return ValueTypeVariable
 	}
 	if strings.HasPrefix(content, "${") && strings.HasSuffix(content, "}") {
@@ -124,14 +124,6 @@ func detectValueType(content interface{}) ValueType {
 		return detectValueTypeFromMap(dict)
 	}
 	return ValueTypeConstant
-}
-
-func parseBuildInVariable(content string) Value {
-	name := content[1:]
-	return Value{
-		Type:  ValueTypeBuildIn,
-		Value: name,
-	}
 }
 
 func parseTemplate(content string) Value {
@@ -282,6 +274,15 @@ func (value Value) Extract(variables interface{}) (res interface{}, err error) {
 			}
 		}
 		return values, nil
+	}
+	if value.Type == ValueTypeBuildIn {
+		klog.V(7).Infof("Value is a build-in variable: %v", value.Value)
+		if dict, ok := variables.(map[string]interface{}); ok {
+			if vars, ok := dict["__buildin__"]; ok {
+				return extractBuildInVariable(value.Value, vars.(map[string]interface{}))
+			}
+			return extractBuildInVariable(value.Value, dict)
+		}
 	}
 	if value.Type == ValueTypeTemplate {
 		klog.V(7).Infof("Value is a template: %v", value.Value)

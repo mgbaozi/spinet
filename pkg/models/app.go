@@ -21,7 +21,7 @@ func (custom *CustomApp) New(mode AppMode, options map[string]interface{}) App {
 		AppOptions: make(map[string]Value),
 	}
 	if app.OriginDictionary == nil {
-		app.OriginDictionary = make(map[string]interface{})
+		app.OriginDictionary = make(map[string]Value)
 	}
 	for key, item := range options {
 		app.AppOptions[key] = ParseValue(item)
@@ -47,13 +47,15 @@ func (custom *CustomApp) AppModes() []AppMode {
 }
 
 func (custom *CustomApp) prepare(ctx Context) (err error) {
-	custom.Context = NewContextWithDictionary(custom.OriginDictionary)
 	for key, value := range custom.AppOptions {
 		//TODO: super data
-		if custom.OriginDictionary[key], err = value.Extract(ctx.MergedData()); err != nil {
-			return
-		}
+		custom.OriginDictionary[key] = value
 	}
+	dictionary := make(map[string]interface{})
+	for key, item := range custom.OriginDictionary {
+		dictionary[key], _ = item.Extract(ctx.MergedData())
+	}
+	custom.Context = NewContextWithDictionary(dictionary)
 	return nil
 }
 

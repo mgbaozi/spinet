@@ -30,7 +30,7 @@ type App interface {
 type Trigger interface {
 	New(options map[string]interface{}) Trigger
 	TriggerName() string
-	Triggered(ctx *Context) <-chan struct{}
+	Triggered(ctx *Context) <-chan map[string]interface{}
 	Options() map[string]interface{}
 }
 
