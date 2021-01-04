@@ -18,7 +18,7 @@ func ProcessMapper(mapper Mapper, variables interface{}) map[string]interface{} 
 	for key, value := range mapper {
 		if v, err := value.Extract(variables); err == nil {
 			res[key] = v
-			klog.V(2).Infof("Mapper set value %v to key %s", v, key)
+			klog.V(4).Infof("Mapper set value %v to key %s", v, key)
 		}
 	}
 	return res

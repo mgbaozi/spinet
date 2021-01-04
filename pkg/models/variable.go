@@ -46,7 +46,8 @@ func parseBuildInVariable(content string) Value {
 
 func extractBuildInVariable(value interface{}, variables map[string]interface{}) (res interface{}, err error) {
 	if str, ok := value.(string); ok {
-		if v, ok := variables[str]; ok {
+		key := strings.ToLower(str)
+		if v, ok := variables[key]; ok {
 			return v, nil
 		}
 		return value, errors.New(fmt.Sprintf("build-in variable %s not found", str))

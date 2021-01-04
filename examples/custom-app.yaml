@@ -21,8 +21,6 @@ outputs:
     options:
       token: "$.token"
       content: "$.content"
-    mapper:
-      data: "$.__app__"
   - app: simple
     options:
       content: "$.data"

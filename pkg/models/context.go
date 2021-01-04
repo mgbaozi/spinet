@@ -189,7 +189,7 @@ func (ctx Context) Mapper(mapper Mapper) {
 		//TODO: super data
 		if v, err := value.Extract(ctx); err == nil {
 			ctx.Dictionary[key] = v
-			klog.V(2).Infof("Set value %v to ctx.dictionary with key %s", v, key)
+			klog.V(4).Infof("Set value %v to context.dictionary with key %s", v, key)
 		}
 	}
 }
