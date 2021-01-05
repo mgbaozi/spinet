@@ -10,20 +10,40 @@ make
 ### Standalone Mode
 ``` bash
 # Simple task
-bin/spictl task -f examples/simple.yaml
+bin/spinet task -f examples/simple.yaml
 
 # Start example api server
 go run examples/api/example.go
 
 # Start a simple task which use example api server
-bin/spictl task -f examples/api-simple.yaml
+bin/spinet task -f examples/api-simple.yaml
 
 # Task with custom app
-bin/spictl -a examples/apps/fetch-and-submit.yaml task -f examples/custom-app.yaml
+bin/spinet -a examples/apps/fetch-and-submit.yaml task -f examples/custom-app.yaml
 ```
 
 ### Cluster Mode
-Not implemented
+```bash
+# Start cluster
+bin/spinet
+
+# Create namespace
+bin/spictl create namespace example
+
+# Apply task/app to cluster
+bin/spictl apply -f example/simple.yaml
+bin/spictl apply -f example/apps/fetch-and-submit.yaml
+
+# Get resource from cluster
+bin/spictl get apps
+bin/spictl get namespaces
+bin/spictl -n default get tasks
+```
+
+### Logging Level
+```bash
+bin/spinet -v N # 0 < N < 10
+```
 
 # Create a task
 
@@ -44,6 +64,7 @@ Process Dependencies → Execute App
 ## Definition
 
 ```yaml
+kind: task
 name: name
 namespace: namespace
 dictionary:
