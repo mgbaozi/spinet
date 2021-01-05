@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/mgbaozi/spinet/pkg/apis"
+	"github.com/mgbaozi/spinet/pkg/client"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -9,11 +12,15 @@ import (
 )
 
 func applyTask(task apis.Task) error {
-	return nil
+	c := client.NewClient(server).Tasks(task.Namespace)
+	_, err := c.Create(&task)
+	return err
 }
 
 func applyApp(app apis.CustomApp) error {
-	return nil
+	c := client.NewClient(server).Apps()
+	_, err := c.Create(&app)
+	return err
 }
 
 func apply(c *cli.Context) error {
@@ -27,7 +34,7 @@ func apply(c *cli.Context) error {
 		return err
 	}
 	if meta.Kind == "" {
-		meta.Kind = "Task"
+		meta.Kind = "task"
 	}
 	switch strings.ToLower(meta.Kind) {
 	case "task":
@@ -35,7 +42,6 @@ func apply(c *cli.Context) error {
 			return err
 		} else {
 			return applyTask(task)
-
 		}
 	case "app":
 		if app, err := apis.CustomAppFromYaml(content); err != nil {
@@ -43,6 +49,8 @@ func apply(c *cli.Context) error {
 		} else {
 			return applyApp(app)
 		}
+	default:
+		return errors.New(fmt.Sprintf("unsupported resource type %s", meta.Kind))
 	}
 	//TODO: return error as default
 	return nil
@@ -50,7 +58,7 @@ func apply(c *cli.Context) error {
 
 var applyCli = &cli.Command{
 	Name:  "apply",
-	Usage: "apply to cluster",
+	Usage: "apply resources to cluster",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "from-file",

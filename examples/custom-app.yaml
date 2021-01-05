@@ -1,4 +1,5 @@
 # Should start with --custom-app examples/apps/fetch-and-submit.yaml
+kind: task
 name: custom-app
 
 dictionary:

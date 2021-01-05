@@ -54,3 +54,24 @@ type App struct {
 	Options map[string]interface{} `json:"options" yaml:"options"`
 	Modes   []models.AppMode       `json:"modes" yaml:"modes"`
 }
+
+type Resource interface {
+	UrlFormat() string
+	Type() string
+}
+
+func (task *Task) Type() string {
+	return task.Kind
+}
+
+func (*Task) URL() string {
+	return "/namespaces/%s/tasks"
+}
+
+func (app *CustomApp) Type() string {
+	return app.Kind
+}
+
+func (*CustomApp) URL() string {
+	return "/apps"
+}

@@ -11,22 +11,23 @@ mod:
 	go build ./...
 
 .PHONY: build
-build: cli
-
-# .PHONY: generate
-# generate:
-# 	go generate ./ent
+build: spinet spictl
 
 .PHONY: run
-run: bin/spictl
-	bin/spictl
+run: bin/spinet
+	bin/spinet
 
-.PHONY: cli
-cli: bin/spictl
+.PHONY: spinet
+spinet: bin/spinet
 
-bin/spictl: cmd/cli/*.go pkg/**/*.go
-	$(env) go build -o bin/spictl ./cmd/cli
+.PHONY: spictl
+spictl: bin/spictl
 
+bin/spinet: cmd/spinet/*.go pkg/**/*.go
+	$(env) go build -o bin/spinet ./cmd/spinet
+
+bin/spictl: cmd/spictl/*.go pkg/**/*.go
+	$(env) go build -o bin/spictl ./cmd/spictl
 
 .PHONY: clean
 clean:

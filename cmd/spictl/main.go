@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/mgbaozi/spinet/pkg/apis"
 	_ "github.com/mgbaozi/spinet/pkg/apps"
+	"github.com/mgbaozi/spinet/pkg/logging"
 	_ "github.com/mgbaozi/spinet/pkg/variables"
 	"k8s.io/klog/v2"
 	"os"
@@ -12,34 +12,20 @@ import (
 
 var debug bool
 var dryRun bool
-var port int
-
-func registerCustomApps(c *cli.Context) error {
-	files := c.StringSlice("custom-app")
-	for _, file := range files {
-		if appSpec, err := apis.CustomAppFromYamlFile(file); err != nil {
-			return err
-		} else {
-			if app, err := appSpec.Parse(); err != nil {
-				return err
-			} else {
-				app.Register()
-			}
-		}
-	}
-	return nil
-}
+var server string
+var namespace string
 
 func globalConfig(c *cli.Context) error {
 	dryRun = c.Bool("dry-run")
 	debug = c.Bool("debug")
-	port = c.Int("port")
+	server = c.String("server")
+	namespace = c.String("namespace")
 
-	if err := klogInit(c); err != nil {
+	if err := logging.Init(c, debug); err != nil {
 		klog.V(2).Infof("Init klog failed with error: %v", err)
 		return err
 	}
-	return registerCustomApps(c)
+	return nil
 }
 
 func main() {
@@ -51,7 +37,8 @@ func main() {
 	app.Name = "spinet-cli"
 	app.Usage = "Spinet command line tools"
 	app.Commands = []*cli.Command{
-		taskCli,
+		applyCli,
+		getCli,
 	}
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
@@ -63,21 +50,22 @@ func main() {
 			Name:  "dry-run",
 			Value: false,
 		},
-		&cli.IntFlag{
-			Name:    "port",
-			Aliases: []string{"p"},
-			Value:   8080,
-			Usage:   "Port for http service",
+		&cli.StringFlag{
+			Name:    "server",
+			Aliases: []string{"s"},
+			Value:   "http://localhost:8080",
+			Usage:   "API server address",
 		},
-		&cli.StringSliceFlag{
-			Name:    "custom-app",
-			Aliases: []string{"a"},
-			Usage:   "Custom app yaml file",
+		&cli.StringFlag{
+			Name:    "namespace",
+			Aliases: []string{"n"},
+			Value:   "default",
+			Usage:   "Resource namespace",
 		},
 	}
-	app.Flags = append(app.Flags, klogCliFlags...)
+	app.Flags = append(app.Flags, logging.CliFlags...)
 	app.Before = globalConfig
-	app.Action = core
+	// app.Action = core
 	app.Version = "0.0.1"
 	app.Run(os.Args)
 }

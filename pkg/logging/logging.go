@@ -1,4 +1,4 @@
-package main
+package logging
 
 import (
 	"flag"
@@ -7,7 +7,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var klogCliFlags = []cli.Flag{
+var CliFlags = []cli.Flag{
 	&cli.IntFlag{
 		Name: "v", Value: 0, Usage: "log level for V logs",
 	},
@@ -37,7 +37,7 @@ var klogCliFlags = []cli.Flag{
 
 const debugLogLevel = 4
 
-func klogInit(c *cli.Context) error {
+func Init(c *cli.Context, debug bool) error {
 	_ = flag.CommandLine.Parse([]string{})
 	logLevel := c.Int("v")
 	if debug && logLevel < debugLogLevel {

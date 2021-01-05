@@ -1,3 +1,4 @@
+kind: app
 name: fetch-and-submit
 
 dictionary:

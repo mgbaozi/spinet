@@ -1,3 +1,4 @@
+kind: task
 name: nested-task-example
 
 dictionary:
