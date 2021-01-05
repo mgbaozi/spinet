@@ -38,6 +38,7 @@ func main() {
 	app.Usage = "Spinet command line tools"
 	app.Commands = []*cli.Command{
 		applyCli,
+		createCli,
 		getCli,
 	}
 	app.Flags = []cli.Flag{

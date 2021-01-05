@@ -27,9 +27,9 @@ func jsonResponse(c echo.Context, code int, message string, data interface{}) er
 
 func (cluster *Cluster) ListNamespaces(c echo.Context) error {
 	namespaces := cluster.Resource.ListNamespaces()
-	res := make([]string, 0)
+	res := make([]apis.Namespace, 0)
 	for _, ns := range namespaces {
-		res = append(res, ns.Name)
+		res = append(res, apis.Namespace{Name: ns.Name})
 	}
 	klog.V(7).Infof("List namespaces handler return %v", res)
 	return jsonResponse(c, http.StatusOK, "", res)
@@ -41,9 +41,10 @@ func (cluster *Cluster) ListTasks(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	res := make([]string, 0)
-	for _, task := range tasks {
-		res = append(res, task.Name)
+	res := make([]apis.Task, 0)
+	for _, item := range tasks {
+		task := apis.SerializeTask(item)
+		res = append(res, task)
 	}
 	klog.V(7).Infof("List tasks handler return %v", res)
 	return jsonResponse(c, http.StatusOK, "", res)
@@ -56,8 +57,9 @@ func (cluster *Cluster) GetTask(c echo.Context) error {
 	if err != nil {
 		return jsonResponse(c, http.StatusNotFound, err.Error(), nil)
 	}
-	klog.V(7).Infof("Get task handler return %v", res)
-	return jsonResponse(c, http.StatusOK, "", res)
+	task := apis.SerializeTask(res)
+	klog.V(7).Infof("Get task handler return %v", task)
+	return jsonResponse(c, http.StatusOK, "", task)
 }
 
 func (cluster *Cluster) CreateTask(c echo.Context) error {
@@ -77,7 +79,7 @@ func (cluster *Cluster) CreateTask(c echo.Context) error {
 }
 
 func (cluster *Cluster) CreateNamespace(c echo.Context) error {
-	var request apis.Meta
+	var request apis.Namespace
 	err := json.NewDecoder(c.Request().Body).Decode(&request)
 	if err != nil {
 		return rest.WarpError(err, http.StatusBadRequest, "decode failed")
@@ -88,9 +90,7 @@ func (cluster *Cluster) CreateNamespace(c echo.Context) error {
 	if err = cluster.Resource.CreateNamespace(request.Name); err != nil {
 		return rest.WarpError(err, http.StatusConflict, "create failed")
 	}
-	return jsonResponse(c, http.StatusOK, "", map[string]interface{}{
-		"name": request.Name,
-	})
+	return jsonResponse(c, http.StatusOK, "", request)
 }
 
 func CreateApp(c echo.Context) error {

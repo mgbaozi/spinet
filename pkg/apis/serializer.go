@@ -2,7 +2,7 @@ package apis
 
 import "github.com/mgbaozi/spinet/pkg/models"
 
-func SerializeTask(task models.Task) (res Task) {
+func SerializeTask(task *models.Task) (res Task) {
 	res.Meta = Meta{
 		Name:      task.Name,
 		Namespace: task.Namespace,

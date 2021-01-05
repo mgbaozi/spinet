@@ -8,19 +8,28 @@ import (
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
+	"k8s.io/klog/v2"
 	"strings"
 )
 
 func applyTask(task apis.Task) error {
 	c := client.NewClient(server).Tasks(task.Namespace)
-	_, err := c.Create(&task)
-	return err
+	if _, err := c.Create(&task); err != nil {
+		klog.Errorf("Apply task failed with error: %v", err)
+		return err
+	}
+	fmt.Printf("task %s applied\n", task.Name)
+	return nil
 }
 
 func applyApp(app apis.CustomApp) error {
 	c := client.NewClient(server).Apps()
-	_, err := c.Create(&app)
-	return err
+	if _, err := c.Create(&app); err != nil {
+		klog.Errorf("Apply app failed with error: %v", err)
+		return err
+	}
+	fmt.Printf("app %s applied\n", app.Name)
+	return nil
 }
 
 func apply(c *cli.Context) error {

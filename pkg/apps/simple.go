@@ -16,14 +16,12 @@ func init() {
 type Simple struct {
 	Mode    models.AppMode
 	Content interface{}
-	options map[string]interface{}
 }
 
 func NewSimple(mode models.AppMode, options map[string]interface{}) *Simple {
 	return &Simple{
 		Mode:    mode,
 		Content: options["content"],
-		options: options,
 	}
 }
 
@@ -43,7 +41,9 @@ func (*Simple) AppModes() []models.AppMode {
 }
 
 func (simple *Simple) Options() map[string]interface{} {
-	return simple.options
+	return map[string]interface{}{
+		"content": simple.Content,
+	}
 }
 
 func (*Simple) getExampleData() string {

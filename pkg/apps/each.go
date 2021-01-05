@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/apis"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 	"k8s.io/klog/v2"
 	"reflect"
@@ -14,20 +15,24 @@ func init() {
 	models.RegisterApp(&Each{})
 }
 
-type Each struct {
-	Mode       models.AppMode
+type EachOptions struct {
 	Collection interface{}
-	Steps      []models.Step
-	options    map[string]interface{}
+	Apps       interface{}
+}
+
+type Each struct {
+	EachOptions
+	Mode  models.AppMode
+	Steps []models.Step
 }
 
 func NewEach(mode models.AppMode, options map[string]interface{}) *Each {
-	each := &Each{
-		Mode:       mode,
-		Collection: options["collection"].(string),
-		options:    options,
+	each := &Each{}
+	if err := mapstructure.Decode(options, &each.EachOptions); err != nil {
+		klog.V(2).Infof("parse options for app `each` failed with error: %v", err)
 	}
-	yml, _ := yaml.Marshal(options["apps"])
+	each.Mode = mode
+	yml, _ := yaml.Marshal(each.EachOptions.Apps)
 	var steps []apis.Step
 	if err := yaml.Unmarshal(yml, &steps); err != nil {
 		klog.Errorf("Unmarshal app failed with error: %v", err)
@@ -57,8 +62,11 @@ func (*Each) AppModes() []models.AppMode {
 	}
 }
 
-func (each *Each) Options() map[string]interface{} {
-	return each.options
+func (each *Each) Options() (res map[string]interface{}) {
+	if err := mapstructure.Decode(each.EachOptions, &res); err != nil {
+		klog.Errorf("Format options for app `each` failed with error: %v", err)
+	}
+	return
 }
 
 func (each *Each) executeApps(ctx models.Context, key interface{}, value interface{}, collection interface{}) (results []interface{}, err error) {

@@ -2,19 +2,28 @@ package apis
 
 import "github.com/mgbaozi/spinet/pkg/models"
 
+type TypeMeta struct {
+	Kind string `json:"kind" yaml:"kind"`
+}
+
 type Meta struct {
-	Kind      string `json:"kind" yaml:"kind"`
+	TypeMeta  `json:",inline" yaml:",inline"`
 	Name      string `json:"name" yaml:"name"`
 	Namespace string `json:"namespace" yaml:"namespace"`
+}
+
+type Namespace struct {
+	TypeMeta `json:",inline" yaml:",inline"`
+	Name     string `json:"name" yaml:"name"`
 }
 
 type Task struct {
 	Meta       `json:",inline" yaml:",inline"`
 	Dictionary map[string]interface{} `json:"dictionary" yaml:"dictionary"`
 	Triggers   []Trigger              `json:"triggers" yaml:"triggers"`
-	Conditions []Condition            `json:"conditions" yaml:"conditions"`
-	Inputs     []Step                 `json:"inputs" yaml:"inputs"`
-	Outputs    []Step                 `json:"outputs" yaml:"outputs"`
+	Conditions []Condition            `json:"conditions,omitempty" yaml:"conditions"`
+	Inputs     []Step                 `json:"inputs,omitempty" yaml:"inputs"`
+	Outputs    []Step                 `json:"outputs,omitempty" yaml:"outputs"`
 }
 
 type Trigger struct {
@@ -24,24 +33,16 @@ type Trigger struct {
 
 type Condition struct {
 	Operator   string        `json:"operator" yaml:"operator"`
-	Conditions []Condition   `json:"conditions" yaml:"conditions"`
+	Conditions []Condition   `json:"conditions,omitempty" yaml:"conditions"`
 	Values     []interface{} `json:"values" yaml:"values"`
 }
 
 type Step struct {
 	App          string                 `json:"app" yaml:"app"`
 	Options      map[string]interface{} `json:"options" yaml:"options"`
-	Mapper       map[string]interface{} `json:"mapper" yaml:"mapper"`
-	Conditions   []Condition            `json:"conditions" yaml:"conditions"`
-	Dependencies []Step                 `json:"dependencies" yaml:"dependencies"`
-}
-
-type Output struct {
-	App        string                 `json:"app" yaml:"app"`
-	Options    map[string]interface{} `json:"options" yaml:"options"`
-	Mapper     map[string]interface{} `json:"mapper" yaml:"mapper"`
-	Conditions []Condition            `json:"conditions" yaml:"conditions"`
-	Outputs    []Output               `json:"outputs" yaml:"outputs"`
+	Mapper       map[string]interface{} `json:"mapper,omitempty" yaml:"mapper"`
+	Conditions   []Condition            `json:"conditions,omitempty" yaml:"conditions"`
+	Dependencies []Step                 `json:"dependencies,omitempty" yaml:"dependencies"`
 }
 
 type CustomApp struct {

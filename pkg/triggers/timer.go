@@ -2,6 +2,7 @@ package triggers
 
 import (
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mitchellh/mapstructure"
 	"k8s.io/klog/v2"
 	"time"
 )
@@ -10,14 +11,18 @@ func init() {
 	models.RegisterTrigger(&Timer{})
 }
 
+const defaultTimerPeriod = 60
+
 type TimerOptions struct {
 	Period int
 }
 
 func NewTimerOptions(options map[string]interface{}) TimerOptions {
-	return TimerOptions{
-		Period: options["period"].(int),
+	timerOptions := TimerOptions{}
+	if err := mapstructure.Decode(options, &timerOptions); err != nil {
+		timerOptions.Period = defaultTimerPeriod
 	}
+	return timerOptions
 }
 
 type Timer struct {

@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"k8s.io/klog/v2"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -17,48 +19,33 @@ func init() {
 }
 
 type Header struct {
-	Name  string
-	Value interface{}
+	Name  string      `json:"name" yaml:"name" mapstructure:"name"`
+	Value interface{} `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+type APIOptions struct {
+	URL     string                 `json:"url" yaml:"url" mapstructure:"url"`
+	Headers []Header               `json:"headers" yaml:"headers" mapstructure:"headers"`
+	Method  string                 `json:"method" yaml:"method" mapstructure:"method"`
+	Params  map[string]interface{} `json:"params" yaml:"params" mapstructure:"params"`
 }
 
 type API struct {
-	Mode    models.AppMode
-	URL     string
-	Headers []Header
-	Method  string
-	Params  map[string]interface{}
-	options map[string]interface{}
+	Mode models.AppMode
+	APIOptions
 }
 
 func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
-	method, ok := options["method"].(string)
-	if !ok {
-		method = http.MethodGet
+	api := &API{}
+	if err := mapstructure.Decode(options, &api.APIOptions); err != nil {
+		klog.V(2).Infof("Merge options to api failed: %v", err)
 	}
-	params, ok := options["params"].(map[string]interface{})
-	if !ok {
-		params = nil
+	if api.Method == "" {
+		api.Method = http.MethodGet
 	}
-	var headers []Header
-	optionsHeaders, ok := options["headers"].([]interface{})
-	if ok {
-		for _, item := range optionsHeaders {
-			if h, ok := item.(map[string]interface{}); ok {
-				headers = append(headers, Header{
-					Name:  h["name"].(string),
-					Value: h["value"],
-				})
-			}
-		}
-	}
-	return &API{
-		Mode:    mode,
-		URL:     options["url"].(string),
-		Headers: headers,
-		Method:  method,
-		Params:  params,
-		options: options,
-	}
+	api.Method = strings.ToUpper(api.Method)
+	api.Mode = mode
+	return api
 }
 
 func (*API) New(mode models.AppMode, options map[string]interface{}) models.App {
@@ -76,8 +63,20 @@ func (*API) AppModes() []models.AppMode {
 	}
 }
 
-func (api *API) Options() map[string]interface{} {
-	return api.options
+func (api *API) Options() (res map[string]interface{}) {
+	if err := mapstructure.Decode(api.APIOptions, &res); err != nil {
+		klog.Errorf("Format app.api's options failed with error: %v", err)
+	}
+	var headers []map[string]interface{}
+	for _, item := range api.APIOptions.Headers {
+		var header map[string]interface{}
+		if err := mapstructure.Decode(item, &header); err != nil {
+			klog.Errorf("Format app.api's options failed with error: %v", err)
+		}
+		headers = append(headers, header)
+	}
+	res["headers"] = headers
+	return
 }
 
 func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
@@ -137,7 +136,7 @@ func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 func callAPI(method string, url string, headers map[string]string, params interface{}, response interface{}) error {
 	var req *http.Request
 	var err error
-	if method == "GET" {
+	if method == http.MethodGet {
 		req, err = http.NewRequest("GET", url, nil)
 	} else {
 		var data []byte

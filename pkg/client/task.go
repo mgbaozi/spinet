@@ -19,9 +19,28 @@ func (client *Client) Tasks(namespace string) *tasks {
 	}
 }
 
+func emptyResponse(pointer interface{}) (resp rest.Response) {
+	resp.Data = pointer
+	return
+}
+
 func (c *tasks) Create(task *apis.Task) (result *apis.Task, err error) {
-	task.Validate()
 	url := fmt.Sprintf("%s/api/namespaces/%s/tasks", c.client.config.server, task.Namespace)
-	err = rest.Query(http.MethodPost, url, nil, task, result)
+	resp := emptyResponse(&result)
+	err = rest.Query(http.MethodPost, url, nil, task, &resp)
+	return
+}
+
+func (c *tasks) Get(name string) (result *apis.Task, err error) {
+	url := fmt.Sprintf("%s/api/namespaces/%s/tasks/%s", c.client.config.server, c.ns, name)
+	resp := emptyResponse(&result)
+	err = rest.Query(http.MethodGet, url, nil, nil, &resp)
+	return
+}
+
+func (c *tasks) List() (result []*apis.Task, err error) {
+	url := fmt.Sprintf("%s/api/namespaces/%s/tasks", c.client.config.server, c.ns)
+	resp := emptyResponse(&result)
+	err = rest.Query(http.MethodGet, url, nil, nil, &resp)
 	return
 }

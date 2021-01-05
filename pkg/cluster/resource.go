@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"k8s.io/klog/v2"
 )
 
 type Namespace struct {
@@ -35,7 +36,9 @@ func (ns Namespace) ListTasks() (res []*models.Task) {
 
 func (ns Namespace) CreateTask(task *models.Task) error {
 	if _, ok := ns.Tasks[task.Name]; !ok {
+		klog.V(2).Infof("Create new task %s in namespace %s", task.Name, ns.Name)
 		ns.Tasks[task.Name] = task
+		go task.Start()
 		return nil
 	} else {
 		return errors.New(fmt.Sprintf("task `%s` in namespace `%s` is already exists", task.Name, ns.Name))
