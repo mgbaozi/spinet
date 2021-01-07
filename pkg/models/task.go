@@ -25,6 +25,7 @@ type Task struct {
 	Inputs     []Step
 	Conditions []Condition
 	Outputs    []Step
+	Aggregator Mapper
 	// TODO: versioned context
 	Context          Context
 	OriginDictionary map[string]Value
@@ -55,12 +56,11 @@ func (task *Task) Start() {
 	}
 	for {
 		_, recv, _ := reflect.Select(cases)
-		// hookData := make(map[string]interface{})
 		hookData := recv.Interface().(map[string]interface{})
 		klog.V(4).Infof("trigger with data %v, %s", hookData, recv.Kind())
 		task.prepare(hookData)
 		task.Execute()
-		klog.V(9).Infof("%s", task.Context.Trace.String())
+		klog.V(9).Infof("%s", task.Context.trace.String())
 	}
 }
 
@@ -90,33 +90,32 @@ func (task *Task) processConditions() (bool, error) {
 	return ProcessConditions(task.Context, NewOperator("and"), task.Conditions)
 }
 
-func (task *Task) Execute() (res bool, err error) {
+func (task *Task) Execute() (result map[string]interface{}, err error) {
+	var res bool
 	defer func() {
 		if err != nil {
 			//FIXME: error description
-			klog.V(3).Infof("Process conditions of task %s failed with error %v, skip output...", task.Name, err)
+			klog.V(3).Infof("Task %s execute failed with error %v...", task.Name, err)
 		} else if !res {
-			klog.V(3).Infof("Conditions are not true, skip output...")
+			klog.V(3).Infof("Conditions are not true, skip steps...")
 		}
-		task.Context.Trace.Push(err == nil, "task finish", res)
+		task.Context.Trace(err == nil, "task finish", res)
 		klog.V(2).Infof("Task %s finished", task.Name)
 	}()
-	task.Context.Trace.Push(true, "task start", nil)
+	task.Context.Trace(true, "task start", nil)
 	klog.V(2).Infof("Running task %s", task.Name)
-	//task.prepare()
-	magic := map[string]interface{}{
-		"__mode__": string(TaskProgressInput),
-	}
-	if res, err = processSteps(task.Context.Sub(string(TaskProgressInput), magic), task.Inputs); err != nil || !res {
+	if res, err = processSteps(task.Context.Sub(string(TaskProgressInput), nil), task.Inputs); err != nil || !res {
 		return
 	}
 	if res, err = task.processConditions(); err != nil || !res {
 		return
 	}
-	magic = map[string]interface{}{
-		"__mode__": string(TaskProgressInput),
+	if res, err = processSteps(task.Context.Sub(string(TaskProgressOutput), nil), task.Outputs); err != nil || !res {
+		return
 	}
-	return processSteps(task.Context.Sub(string(TaskProgressOutput), magic), task.Outputs)
 	// TODO: add output validator
 	// TODO: add task validator
+	// TODO: this return value is task data, save to history
+	result = ProcessMapper(task.Aggregator, task.Context.Dictionary)
+	return result, nil
 }

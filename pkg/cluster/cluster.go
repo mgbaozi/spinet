@@ -114,7 +114,6 @@ func ListApps(c echo.Context) error {
 		var app apis.App
 		app.Name = item.AppName()
 		app.Options = item.Options()
-		app.Modes = item.AppModes()
 		res = append(res, app)
 	}
 	return jsonResponse(c, http.StatusOK, "", res)

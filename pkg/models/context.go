@@ -14,7 +14,7 @@ type BaseContext struct {
 	Dictionary   map[string]interface{}
 	AppData      map[string]interface{}
 	MagicVarData map[string]MagicVariables
-	Trace        Trace
+	trace        Trace
 }
 
 func NewBaseContext() *BaseContext {
@@ -130,6 +130,15 @@ func (ctx Context) SetMagicVariables(data MagicVariables) {
 	}
 	key := ctx.shader.Key()
 	ctx.MagicVarData[key] = data
+}
+
+func (ctx Context) getTrace() *Trace {
+	return &ctx.trace
+}
+
+func (ctx Context) Trace(success bool, message string, data interface{}) {
+	trace := ctx.getTrace()
+	trace.Push(success, message, data)
 }
 
 func (ctx Context) Super() Context {

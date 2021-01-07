@@ -10,14 +10,12 @@ func (step *Step) processConditions(ctx Context) (bool, error) {
 }
 
 func (step *Step) Process(ctx Context) (res bool, err error) {
-	ctx.Trace.Indent()
-	ctx.Trace.Push(true, "processing "+ctx.shader.Key(), nil)
+	ctx.Trace(true, "processing "+ctx.shader.Key(), nil)
 	defer func() {
 		if err != nil {
 			klog.V(3).Infof("Execute app %s failed: %v", step.App.AppName(), err)
 		}
-		ctx.Trace.Push(err == nil, "process "+ctx.shader.Key()+" finished", res)
-		ctx.Trace.UnIndent()
+		ctx.Trace(err == nil, "process "+ctx.shader.Key()+" finished", res)
 	}()
 	if res, err := processSteps(ctx, step.Dependencies); err != nil || !res {
 		return res, err
@@ -34,11 +32,9 @@ func (step *Step) Process(ctx Context) (res bool, err error) {
 }
 
 func processSteps(ctx Context, steps []Step) (res bool, err error) {
-	ctx.Trace.Indent()
-	ctx.Trace.Push(true, "processing "+ctx.shader.Key(), nil)
+	ctx.Trace(true, "processing "+ctx.shader.Key(), nil)
 	defer func() {
-		ctx.Trace.Push(err == nil, "process "+ctx.shader.Key()+" finished", res)
-		ctx.Trace.UnIndent()
+		ctx.Trace(err == nil, "process "+ctx.shader.Key()+" finished", res)
 	}()
 	var dependencyResults []interface{}
 	for index := range steps {
