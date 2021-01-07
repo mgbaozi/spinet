@@ -41,7 +41,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		res.Triggers = append(res.Triggers, trigger.Parse())
 	}
 	for _, input := range task.Inputs {
-		if item, err := input.Parse(models.AppModeInput); err != nil {
+		if item, err := input.Parse(); err != nil {
 			return res, err
 		} else {
 			res.Inputs = append(res.Inputs, item)
@@ -51,7 +51,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		res.Conditions = append(res.Conditions, condition.Parse())
 	}
 	for _, output := range task.Outputs {
-		if item, err := output.Parse(models.AppModeOutPut); err != nil {
+		if item, err := output.Parse(); err != nil {
 			return res, err
 		} else {
 			res.Outputs = append(res.Outputs, item)
@@ -66,14 +66,14 @@ func (trigger Trigger) Parse() models.Trigger {
 	return models.NewTrigger(name, options)
 }
 
-func (step Step) Parse(mode models.AppMode) (res models.Step, err error) {
+func (step Step) Parse() (res models.Step, err error) {
 	app := step.App
 	options := step.Options
 	for _, condition := range step.Conditions {
 		res.Conditions = append(res.Conditions, condition.Parse())
 	}
 	for _, item := range step.Dependencies {
-		if dependency, err := item.Parse(mode); err != nil {
+		if dependency, err := item.Parse(); err != nil {
 			return res, err
 		} else {
 			res.Dependencies = append(res.Dependencies, dependency)
@@ -83,8 +83,7 @@ func (step Step) Parse(mode models.AppMode) (res models.Step, err error) {
 	for key, value := range step.Mapper {
 		res.Mapper[key] = models.ParseValue(value)
 	}
-	res.Mode = mode
-	res.App, err = models.NewApp(app, mode, options)
+	res.App, err = models.NewApp(app, options)
 	return res, err
 }
 
@@ -120,7 +119,6 @@ func CustomAppFromYamlFile(filename string) (CustomApp, error) {
 }
 
 func (app CustomApp) Parse() (res models.CustomApp, err error) {
-	res.Modes = app.Modes
 	res.Task, err = app.Task.Parse()
 	return
 }

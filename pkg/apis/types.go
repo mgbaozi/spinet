@@ -1,7 +1,5 @@
 package apis
 
-import "github.com/mgbaozi/spinet/pkg/models"
-
 type TypeMeta struct {
 	Kind string `json:"kind" yaml:"kind"`
 }
@@ -46,14 +44,12 @@ type Step struct {
 }
 
 type CustomApp struct {
-	Task  `json:",inline" yaml:",inline"`
-	Modes []models.AppMode `json:"modes" yaml:"modes"`
+	Task `json:",inline" yaml:",inline"`
 }
 
 type App struct {
 	Name    string                 `json:"name" yaml:"name"`
 	Options map[string]interface{} `json:"options" yaml:"options"`
-	Modes   []models.AppMode       `json:"modes" yaml:"modes"`
 }
 
 type Resource interface {

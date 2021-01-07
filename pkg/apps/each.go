@@ -22,23 +22,21 @@ type EachOptions struct {
 
 type Each struct {
 	EachOptions
-	Mode  models.AppMode
 	Steps []models.Step
 }
 
-func NewEach(mode models.AppMode, options map[string]interface{}) *Each {
+func NewEach(options map[string]interface{}) *Each {
 	each := &Each{}
 	if err := mapstructure.Decode(options, &each.EachOptions); err != nil {
 		klog.V(2).Infof("parse options for app `each` failed with error: %v", err)
 	}
-	each.Mode = mode
 	yml, _ := yaml.Marshal(each.EachOptions.Apps)
 	var steps []apis.Step
 	if err := yaml.Unmarshal(yml, &steps); err != nil {
 		klog.Errorf("Unmarshal app failed with error: %v", err)
 	}
 	for _, item := range steps {
-		step, err := item.Parse(mode)
+		step, err := item.Parse()
 		if err != nil {
 			klog.Errorf("Parse step failed with error: %v", err)
 		}
@@ -47,19 +45,12 @@ func NewEach(mode models.AppMode, options map[string]interface{}) *Each {
 	return each
 }
 
-func (*Each) New(mode models.AppMode, options map[string]interface{}) models.App {
-	return NewEach(mode, options)
+func (*Each) New(options map[string]interface{}) models.App {
+	return NewEach(options)
 }
 
 func (*Each) AppName() string {
 	return "each"
-}
-
-func (*Each) AppModes() []models.AppMode {
-	return []models.AppMode{
-		models.AppModeInput,
-		models.AppModeOutPut,
-	}
 }
 
 func (each *Each) Options() (res map[string]interface{}) {

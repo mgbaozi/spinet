@@ -34,3 +34,7 @@ outputs:
           value: "${Token {{.token}}}"
     mapper:
       weight: "$.__app__"
+
+
+aggregator:
+  content: "$.content"

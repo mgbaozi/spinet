@@ -6,23 +6,23 @@ import (
 
 type Step struct {
 	App          App
-	Mode         AppMode
 	Mapper       map[string]Value
 	Conditions   []Condition
 	Dependencies []Step
 }
 
-type AppMode string
+type TaskProgress string
 
 const (
-	AppModeInput  AppMode = "input"
-	AppModeOutPut AppMode = "output"
+	TaskProgressInput      TaskProgress = "input"
+	TaskProgressCondition  TaskProgress = "condition"
+	TaskProgressOutput     TaskProgress = "output"
+	TaskProgressAggregator TaskProgress = "aggregator"
 )
 
 type App interface {
 	AppName() string
-	New(mode AppMode, options map[string]interface{}) App
-	AppModes() []AppMode
+	New(options map[string]interface{}) App
 	Options() map[string]interface{}
 	Execute(ctx Context, data interface{}) error
 }

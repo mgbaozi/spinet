@@ -30,15 +30,15 @@ inputs:
           - "apple"
 
 outputs:
-  - app: simple
+  - app: print
     options:
       content: "$.content"
-  - app: simple
+  - app: print
     options:
       content: "$.token"
-  - app: simple
+  - app: print
     options:
       content: "$.date"
-  - app: simple
+  - app: print
     options:
       content: "$time"

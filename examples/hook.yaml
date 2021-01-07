@@ -11,6 +11,6 @@ triggers:
 
 inputs: []
 outputs:
-  - app: simple
+  - app: print
     options:
       content: "$.data"

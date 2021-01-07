@@ -31,11 +31,10 @@ type APIOptions struct {
 }
 
 type API struct {
-	Mode models.AppMode
 	APIOptions
 }
 
-func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
+func NewAPI(options map[string]interface{}) *API {
 	api := &API{}
 	if err := mapstructure.Decode(options, &api.APIOptions); err != nil {
 		klog.V(2).Infof("Merge options to api failed: %v", err)
@@ -44,23 +43,15 @@ func NewAPI(mode models.AppMode, options map[string]interface{}) *API {
 		api.Method = http.MethodGet
 	}
 	api.Method = strings.ToUpper(api.Method)
-	api.Mode = mode
 	return api
 }
 
-func (*API) New(mode models.AppMode, options map[string]interface{}) models.App {
-	return NewAPI(mode, options)
+func (*API) New(options map[string]interface{}) models.App {
+	return NewAPI(options)
 }
 
 func (*API) AppName() string {
 	return "api"
-}
-
-func (*API) AppModes() []models.AppMode {
-	return []models.AppMode{
-		models.AppModeInput,
-		models.AppModeOutPut,
-	}
 }
 
 func (api *API) Options() (res map[string]interface{}) {
@@ -82,9 +73,9 @@ func (api *API) Options() (res map[string]interface{}) {
 func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	defer func() {
 		if err != nil {
-			klog.V(4).Infof("execute app %s in %s mode failed with error %v", api.AppName(), api.Mode, err)
+			klog.V(4).Infof("execute app %s failed with error %v", api.AppName(), err)
 		} else {
-			klog.V(4).Infof("execute app %s in %s mode success", api.AppName(), api.Mode)
+			klog.V(4).Infof("execute app %s success", api.AppName())
 		}
 	}()
 	headers := make(map[string]string)

@@ -105,18 +105,18 @@ func (task *Task) Execute() (res bool, err error) {
 	klog.V(2).Infof("Running task %s", task.Name)
 	//task.prepare()
 	magic := map[string]interface{}{
-		"__mode__": string(AppModeInput),
+		"__mode__": string(TaskProgressInput),
 	}
-	if res, err = processSteps(task.Context.Sub(string(AppModeInput), magic), task.Inputs); err != nil || !res {
+	if res, err = processSteps(task.Context.Sub(string(TaskProgressInput), magic), task.Inputs); err != nil || !res {
 		return
 	}
 	if res, err = task.processConditions(); err != nil || !res {
 		return
 	}
 	magic = map[string]interface{}{
-		"__mode__": string(AppModeInput),
+		"__mode__": string(TaskProgressInput),
 	}
-	return processSteps(task.Context.Sub(string(AppModeOutPut), magic), task.Outputs)
+	return processSteps(task.Context.Sub(string(TaskProgressOutput), magic), task.Outputs)
 	// TODO: add output validator
 	// TODO: add task validator
 }

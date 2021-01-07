@@ -7,17 +7,13 @@ import (
 
 type CustomApp struct {
 	Task
-	Mode       AppMode
-	Modes      []AppMode
 	AppOptions map[string]Value
 	options    map[string]interface{}
 }
 
-func (custom *CustomApp) New(mode AppMode, options map[string]interface{}) App {
+func (custom *CustomApp) New(options map[string]interface{}) App {
 	app := &CustomApp{
-		Mode:       mode,
 		Task:       custom.Task,
-		Modes:      custom.Modes,
 		AppOptions: make(map[string]Value),
 	}
 	if app.OriginDictionary == nil {
@@ -40,10 +36,6 @@ func (custom *CustomApp) Register() {
 
 func (custom *CustomApp) Options() map[string]interface{} {
 	return custom.options
-}
-
-func (custom *CustomApp) AppModes() []AppMode {
-	return custom.Modes
 }
 
 func (custom *CustomApp) prepare(ctx Context) (err error) {
@@ -74,19 +66,13 @@ func (custom *CustomApp) Execute(ctx Context, data interface{}) (err error) {
 		return err
 	}
 	var res bool
-	magic := map[string]interface{}{
-		"__mode__": string(AppModeInput),
-	}
-	if res, err = processSteps(custom.Context.Sub(string(AppModeInput), magic), custom.Inputs); err != nil || !res {
+	if res, err = processSteps(custom.Context.Sub(string(TaskProgressInput), nil), custom.Inputs); err != nil || !res {
 		return
 	}
 	if res, err = custom.processConditions(); err != nil || !res {
 		return
 	}
-	magic = map[string]interface{}{
-		"__mode__": string(AppModeInput),
-	}
-	if res, err = processSteps(custom.Context.Sub(string(AppModeOutPut), magic), custom.Outputs); err != nil || !res {
+	if res, err = processSteps(custom.Context.Sub(string(TaskProgressOutput), nil), custom.Outputs); err != nil || !res {
 		return
 	}
 	return

@@ -28,12 +28,12 @@ inputs:
             - "apple"
 
 outputs:
-  - app: simple
+  - app: print
     options:
       content: "$.content"
-  - app: simple
+  - app: print
     options:
       content: "$.dep-content"
-  - app: simple
+  - app: print
     options:
       content: "$.token"
