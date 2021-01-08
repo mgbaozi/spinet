@@ -30,6 +30,12 @@ func (*Simple) AppName() string {
 	return "simple"
 }
 
+func (*Simple) AppOptions() []models.AppOptionItem {
+	return []models.AppOptionItem{
+		{Name: "content", Type: "any", Required: false},
+	}
+}
+
 func (simple *Simple) Options() map[string]interface{} {
 	return map[string]interface{}{
 		"content": simple.Content,

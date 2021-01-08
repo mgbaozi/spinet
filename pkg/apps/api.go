@@ -54,6 +54,10 @@ func (*API) AppName() string {
 	return "api"
 }
 
+func (*API) AppOptions() []models.AppOptionItem {
+	return models.AppOptionsFromStructPtr(&APIOptions{})
+}
+
 func (api *API) Options() (res map[string]interface{}) {
 	if err := mapstructure.Decode(api.APIOptions, &res); err != nil {
 		klog.Errorf("Format app.api's options failed with error: %v", err)

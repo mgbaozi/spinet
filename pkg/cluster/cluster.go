@@ -113,7 +113,9 @@ func ListApps(c echo.Context) error {
 	for _, item := range apps {
 		var app apis.App
 		app.Name = item.AppName()
-		app.Options = item.Options()
+		for _, option := range item.AppOptions() {
+			app.Options = append(app.Options, apis.SerializeAppOption(option))
+		}
 		res = append(res, app)
 	}
 	return jsonResponse(c, http.StatusOK, "", res)

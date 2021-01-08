@@ -22,6 +22,7 @@ type Task struct {
 	Conditions []Condition            `json:"conditions,omitempty" yaml:"conditions"`
 	Inputs     []Step                 `json:"inputs,omitempty" yaml:"inputs"`
 	Outputs    []Step                 `json:"outputs,omitempty" yaml:"outputs"`
+	Aggregator map[string]interface{} `json:"aggregator,omitempty" yaml:"aggregator"`
 }
 
 type Trigger struct {
@@ -43,13 +44,20 @@ type Step struct {
 	Dependencies []Step                 `json:"dependencies,omitempty" yaml:"dependencies"`
 }
 
+type AppOptionItem struct {
+	Name     string `json:"name" yaml:"name"`
+	Type     string `json:"type" yaml:"type"`
+	Required bool   `json:"required" yaml:"required"`
+}
+
 type CustomApp struct {
-	Task `json:",inline" yaml:",inline"`
+	Task    `json:",inline" yaml:",inline"`
+	Options []AppOptionItem `json:"options" yaml:"options"`
 }
 
 type App struct {
-	Name    string                 `json:"name" yaml:"name"`
-	Options map[string]interface{} `json:"options" yaml:"options"`
+	Name    string          `json:"name" yaml:"name"`
+	Options []AppOptionItem `json:"options" yaml:"options"`
 }
 
 type Resource interface {

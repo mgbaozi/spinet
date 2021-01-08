@@ -5,8 +5,13 @@ dictionary:
   token: auth-token
   content: post-data
 
-modes:
-  - output
+options:
+  - name: token
+    type: string
+    required: true
+  - name: content
+    type: string
+    required: true
 
 inputs:
   - app: api

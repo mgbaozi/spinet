@@ -36,6 +36,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		Namespace: task.Namespace,
 	}
 	res.Context = models.NewContext()
+	res.Aggregator = make(models.Mapper)
 	res.SetDictionary(task.Dictionary)
 	for _, trigger := range task.Triggers {
 		res.Triggers = append(res.Triggers, trigger.Parse())
@@ -57,6 +58,7 @@ func (task Task) Parse() (res models.Task, err error) {
 			res.Outputs = append(res.Outputs, item)
 		}
 	}
+	res.Aggregator = models.ParseMapper(task.Aggregator)
 	return res, nil
 }
 
@@ -120,5 +122,17 @@ func CustomAppFromYamlFile(filename string) (CustomApp, error) {
 
 func (app CustomApp) Parse() (res models.CustomApp, err error) {
 	res.Task, err = app.Task.Parse()
+	for _, item := range app.Options {
+		option, _ := item.Parse()
+		res.DefinedOptions = append(res.DefinedOptions, option)
+	}
 	return
+}
+
+func (option AppOptionItem) Parse() (res models.AppOptionItem, err error) {
+	return models.AppOptionItem{
+		Name:     option.Name,
+		Type:     option.Type,
+		Required: option.Required,
+	}, nil
 }

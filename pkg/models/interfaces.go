@@ -22,9 +22,16 @@ const (
 
 type App interface {
 	AppName() string
+	AppOptions() []AppOptionItem
 	New(options map[string]interface{}) App
 	Options() map[string]interface{}
 	Execute(ctx Context, data interface{}) error
+}
+
+type AppOptionItem struct {
+	Name     string
+	Type     string
+	Required bool
 }
 
 type Trigger interface {

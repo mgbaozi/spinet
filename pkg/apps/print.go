@@ -30,6 +30,12 @@ func (*Printer) AppName() string {
 	return "print"
 }
 
+func (*Printer) AppOptions() []models.AppOptionItem {
+	return []models.AppOptionItem{
+		{Name: "content", Type: "any", Required: false},
+	}
+}
+
 func (printer *Printer) Options() map[string]interface{} {
 	return map[string]interface{}{
 		"content": printer.Content,

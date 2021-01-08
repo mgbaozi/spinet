@@ -53,6 +53,10 @@ func (*Each) AppName() string {
 	return "each"
 }
 
+func (*Each) AppOptions() []models.AppOptionItem {
+	return models.AppOptionsFromStructPtr(&EachOptions{})
+}
+
 func (each *Each) Options() (res map[string]interface{}) {
 	if err := mapstructure.Decode(each.EachOptions, &res); err != nil {
 		klog.Errorf("Format options for app `each` failed with error: %v", err)

@@ -59,3 +59,11 @@ func SerializeCondition(condition models.Condition) (res Condition) {
 	}
 	return
 }
+
+func SerializeAppOption(option models.AppOptionItem) (res AppOptionItem) {
+	return AppOptionItem{
+		Name:     option.Name,
+		Type:     option.Type,
+		Required: option.Required,
+	}
+}
