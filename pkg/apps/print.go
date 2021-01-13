@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
-	"math/rand"
-	"time"
 )
 
 func init() {
@@ -40,13 +38,6 @@ func (printer *Printer) Options() map[string]interface{} {
 	return map[string]interface{}{
 		"content": printer.Content,
 	}
-}
-
-func (*Printer) getExampleData() string {
-	rand.Seed(time.Now().Unix())
-	index := rand.Int() % 3
-	contents := []string{"apple", "orange", "banana"}
-	return fmt.Sprintf(`{"content": "%s"}`, contents[index])
 }
 
 func (printer *Printer) Execute(ctx models.Context, data interface{}) error {
