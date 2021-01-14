@@ -1,0 +1,21 @@
+kind: task
+name: run-javascript
+
+triggers:
+  - type: timer
+    options:
+      period: 3
+
+inputs:
+  - app: javascript
+    options:
+      script: |
+        console.log(__dictionary__);
+        return 4;
+    mapper:
+      content: "$.__app__"
+
+outputs:
+  - app: print
+    options:
+      content: "$.content"

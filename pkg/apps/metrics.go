@@ -1,9 +1,15 @@
 package apps
 
 import (
+	"context"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"github.com/mitchellh/mapstructure"
+	"github.com/prometheus/client_golang/api"
+	"github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 	"k8s.io/klog/v2"
+	"reflect"
+	"time"
 )
 
 func init() {
@@ -57,5 +63,41 @@ func (metrics *Metrics) Execute(ctx models.Context, data interface{}) (err error
 		}
 	}()
 	//TODO: query metrics and set into data
+	switch metrics.Datasource {
+	case "prometheus":
+		address, _ := models.ParseValue(metrics.URL).Extract(ctx)
+		query, _ := models.ParseValue(metrics.Query).Extract(ctx)
+		client, _ := api.NewClient(api.Config{
+			Address: address.(string),
+		})
+		v1api := v1.NewAPI(client)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		r := v1.Range{
+			Start: time.Now().Add(-time.Hour),
+			End:   time.Now(),
+			Step:  time.Minute,
+		}
+		result, _, err := v1api.QueryRange(ctx, query.(string), r)
+		if err != nil {
+			return err
+		}
+		switch result.Type() {
+		case model.ValMatrix:
+			if matrix, ok := result.(model.Matrix); ok {
+				for _, item := range matrix {
+					klog.V(9).Info(item.Values)
+				}
+			}
+		case model.ValVector:
+			if vector, ok := result.(model.Vector); ok {
+				klog.V(9).Info(vector)
+			}
+		}
+		val := reflect.ValueOf(data)
+		if val.Kind() == reflect.Ptr {
+			val.Elem().Set(reflect.ValueOf(result))
+		}
+	}
 	return nil
 }

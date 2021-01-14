@@ -1,0 +1,25 @@
+kind: task
+name: get-metrics-from-prometheus
+
+dictionary:
+  query: go_goroutines
+  url: http://127.0.0.1:19090
+
+triggers:
+  - type: timer
+    options:
+      period: 3
+
+inputs:
+  - app: metrics
+    options:
+      datasource: prometheus
+      query: "$.query"
+      url: "$.url"
+    mapper:
+      content: "$.__app__"
+
+outputs:
+  - app: print
+    options:
+      content: "$.content"

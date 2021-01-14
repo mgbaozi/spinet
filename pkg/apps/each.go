@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/apis"
+	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"github.com/mgbaozi/spinet/pkg/models"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
@@ -95,10 +96,7 @@ func (each *Each) Execute(ctx models.Context, data interface{}) error {
 			if res, err := each.executeApps(ctx, index, item, collection); err != nil {
 				return err
 			} else {
-				val := reflect.ValueOf(data)
-				if val.Kind() == reflect.Ptr {
-					val.Elem().Set(reflect.ValueOf(res))
-				}
+				utils.SetValueToPtr(res, data)
 			}
 		}
 		return nil
