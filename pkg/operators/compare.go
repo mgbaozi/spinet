@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"k8s.io/klog/v2"
 	"reflect"
 )
@@ -27,27 +28,6 @@ func (r CompareResult) String() string {
 	default:
 		return "illegal result"
 	}
-}
-
-func convertToFloat64IfPossible(value interface{}) interface{} {
-	// switch value.(type) {
-	// case int, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32:
-	// 	return float64(value)
-
-	// }
-	if value == nil {
-		return value
-	}
-	var floatType = reflect.TypeOf(float64(0))
-	v := reflect.ValueOf(value)
-	v = reflect.Indirect(v)
-	convertible := v.Type().ConvertibleTo(floatType)
-	klog.V(8).Infof("Try converting value %v to float64, result: %v", value, convertible)
-	if !convertible {
-		return value
-	}
-	fv := v.Convert(floatType)
-	return fv.Float()
 }
 
 func compareString(lhs, rhs string) CompareResult {
@@ -145,8 +125,8 @@ func compare(lhs, rhs interface{}) (res CompareResult, err error) {
 			return CompareResultGreater, nil
 		}
 	}
-	lhs = convertToFloat64IfPossible(lhs)
-	rhs = convertToFloat64IfPossible(rhs)
+	lhs, _ = utils.ConvertToFloat64IfPossible(lhs)
+	rhs, _ = utils.ConvertToFloat64IfPossible(rhs)
 	if cmp.Equal(lhs, rhs) {
 		return CompareResultEqual, nil
 	}
@@ -174,8 +154,8 @@ func isEqual(lhs, rhs interface{}) (res bool) {
 	if lhs == rhs {
 		return true
 	}
-	lvalue := convertToFloat64IfPossible(lhs)
-	rvalue := convertToFloat64IfPossible(rhs)
+	lvalue, _ := utils.ConvertToFloat64IfPossible(lhs)
+	rvalue, _ := utils.ConvertToFloat64IfPossible(rhs)
 	equal := cmp.Equal(lvalue, rvalue)
 	return equal
 }
