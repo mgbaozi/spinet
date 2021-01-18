@@ -43,7 +43,7 @@ type Trigger interface {
 
 type Operator interface {
 	Name() string
-	Do(values []interface{}) (bool, error)
+	Do(values []interface{}) (interface{}, error)
 }
 
 type HandlerType string

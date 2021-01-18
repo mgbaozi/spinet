@@ -20,7 +20,7 @@ func init() {
 	)
 }
 
-func logOperatorResult(name string, res bool, err error) {
+func logOperatorResult(name string, res interface{}, err error) {
 	if err != nil {
 		klog.V(6).Infof("Operator %s failed with error: %v", name, err)
 	} else {
@@ -44,7 +44,7 @@ func listContainsValue(values []interface{}, value interface{}) bool {
 	return false
 }
 
-func (op Contains) Do(values []interface{}) (res bool, err error) {
+func (op Contains) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -84,7 +84,7 @@ func (And) Name() string {
 	return "and"
 }
 
-func (op And) Do(values []interface{}) (res bool, err error) {
+func (op And) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -106,7 +106,7 @@ func (Or) Name() string {
 	return "or"
 }
 
-func (op Or) Do(values []interface{}) (res bool, err error) {
+func (op Or) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -129,7 +129,7 @@ func (Not) Name() string {
 }
 
 //TODO: operator not should only receive one value
-func (op Not) Do(values []interface{}) (res bool, err error) {
+func (op Not) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()

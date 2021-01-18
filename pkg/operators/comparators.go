@@ -6,7 +6,7 @@ func (EQ) Name() string {
 	return "eq"
 }
 
-func (op EQ) Do(values []interface{}) (res bool, err error) {
+func (op EQ) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -27,7 +27,7 @@ func (Greater) Name() string {
 	return "gt"
 }
 
-func (op Greater) Do(values []interface{}) (res bool, err error) {
+func (op Greater) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -52,7 +52,7 @@ func (Less) Name() string {
 	return "lt"
 }
 
-func (op Less) Do(values []interface{}) (res bool, err error) {
+func (op Less) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -77,7 +77,7 @@ func (LE) Name() string {
 	return "le"
 }
 
-func (op LE) Do(values []interface{}) (res bool, err error) {
+func (op LE) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()
@@ -106,7 +106,7 @@ func (GE) Name() string {
 	return "ge"
 }
 
-func (op GE) Do(values []interface{}) (res bool, err error) {
+func (op GE) Do(values []interface{}) (res interface{}, err error) {
 	defer func() {
 		logOperatorResult(op.Name(), res, err)
 	}()

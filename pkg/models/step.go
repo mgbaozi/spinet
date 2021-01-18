@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -48,5 +49,7 @@ func processSteps(ctx Context, steps []Step) (res bool, err error) {
 			dependencyResults = append(dependencyResults, res)
 		}
 	}
-	return NewOperator("and").Do(dependencyResults)
+	var val interface{}
+	val, err = NewOperator("and").Do(dependencyResults)
+	return utils.ToBoolean(val), err
 }

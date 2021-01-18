@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func ToBool(value interface{}) bool {
+func ToBoolean(value interface{}) bool {
 	if value == nil {
 		return false
 	}
@@ -16,7 +16,7 @@ func ToBool(value interface{}) bool {
 	case reflect.String, reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
 		return rvalue.Len() > 0
 	case reflect.Ptr:
-		return ToBool(rvalue.Elem().Interface())
+		return ToBoolean(rvalue.Elem().Interface())
 	case reflect.Struct, reflect.Interface, reflect.UnsafePointer, reflect.Func:
 		return true
 	default:

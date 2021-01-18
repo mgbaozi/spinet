@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -17,7 +18,7 @@ func (condition Condition) String() string {
 		condition.Operator.Name(), condition.Conditions, condition.Values)
 }
 
-func (condition Condition) Exec(ctx Context) (res bool, err error) {
+func (condition Condition) Exec(ctx Context) (res interface{}, err error) {
 	defer func() {
 		if err != nil {
 			klog.V(4).Infof("%s execute failed with error %v", condition, err)
@@ -54,5 +55,6 @@ func ProcessConditions(ctx Context, operator Operator, conditions []Condition) (
 		}
 		values = append(values, res)
 	}
-	return operator.Do(values)
+	val, err := operator.Do(values)
+	return utils.ToBoolean(val), err
 }

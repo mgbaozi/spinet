@@ -10,40 +10,40 @@ import (
 )
 
 func init() {
-	models.RegisterApp(&Javascript{})
+	models.RegisterApp(&JavaScript{})
 }
 
-type JavascriptOptions struct {
+type JavaScriptOptions struct {
 	Script string `json:"script" yaml:"script" mapstructure:"script"`
 }
 
-type Javascript struct {
-	JavascriptOptions
+type JavaScript struct {
+	JavaScriptOptions
 }
 
-func NewJavascript(options map[string]interface{}) *Javascript {
-	javascript := &Javascript{}
-	if err := mapstructure.Decode(options, &javascript.JavascriptOptions); err != nil {
+func NewJavaScript(options map[string]interface{}) *JavaScript {
+	javascript := &JavaScript{}
+	if err := mapstructure.Decode(options, &javascript.JavaScriptOptions); err != nil {
 		klog.V(2).Infof("Merge options to javascript failed: %v", err)
 	}
 	return javascript
 }
 
-func (*Javascript) New(options map[string]interface{}) models.App {
-	return NewJavascript(options)
+func (*JavaScript) New(options map[string]interface{}) models.App {
+	return NewJavaScript(options)
 }
 
-func (*Javascript) AppName() string {
+func (*JavaScript) AppName() string {
 	return "javascript"
 }
 
-func (*Javascript) AppOptions() []models.AppOptionItem {
+func (*JavaScript) AppOptions() []models.AppOptionItem {
 	return []models.AppOptionItem{
 		{Name: "script", Type: "string", Required: true},
 	}
 }
 
-func (js *Javascript) Options() map[string]interface{} {
+func (js *JavaScript) Options() map[string]interface{} {
 	return map[string]interface{}{
 		"script": js.Script,
 	}
@@ -57,7 +57,7 @@ func formatScript(script string) string {
 	`, script)
 }
 
-func (js *Javascript) Execute(ctx models.Context, data interface{}) error {
+func (js *JavaScript) Execute(ctx models.Context, data interface{}) error {
 	vm := otto.New()
 	vm.Set("__dictionary__", ctx.Dictionary)
 	if magic, ok := ctx.GetMagicVariables(); ok {
