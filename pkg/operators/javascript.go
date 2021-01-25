@@ -23,6 +23,5 @@ func (op JavaScript) Do(values []interface{}) (res interface{}, err error) {
 	}()
 	vm := otto.New()
 	vm.Set("values", values)
-	res, err = vm.Run(fmt.Sprintf(tmpl, "return 2"))
-	return true, nil
+	return vm.Run(fmt.Sprintf(tmpl, "return 2"))
 }

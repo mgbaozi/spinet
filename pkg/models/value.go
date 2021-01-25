@@ -13,11 +13,12 @@ type ValueType string
 type ValueSource string
 
 const (
-	ValueTypeConstant ValueType = "constant"
-	ValueTypeVariable ValueType = "variable"
-	ValueTypeTemplate ValueType = "template"
-	ValueTypeBuildIn  ValueType = "buildin"
-	ValueTypeMap      ValueType = "map"
+	ValueTypeConstant   ValueType = "constant"
+	ValueTypeVariable   ValueType = "variable"
+	ValueTypeTemplate   ValueType = "template"
+	ValueTypeBuildIn    ValueType = "buildin"
+	ValueTypeMap        ValueType = "map"
+	ValueTypeExpression ValueType = "expression"
 )
 
 const (
