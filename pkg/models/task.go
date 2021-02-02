@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/mgbaozi/spinet/pkg/values"
 	"k8s.io/klog/v2"
 	"reflect"
 	"time"
@@ -28,17 +29,17 @@ type Task struct {
 	Aggregator Mapper
 	// TODO: versioned context
 	Context          Context
-	OriginDictionary map[string]Value
+	OriginDictionary map[string]values.Value
 }
 
 // set origin dictionary of task, it will set to context before every execution
 func (task *Task) SetDictionary(dictionary map[string]interface{}) {
-	task.OriginDictionary = make(map[string]Value)
+	task.OriginDictionary = make(map[string]values.Value)
 	if dictionary == nil {
 		dictionary = make(map[string]interface{})
 	}
 	for key, item := range dictionary {
-		task.OriginDictionary[key] = ParseValue(item)
+		task.OriginDictionary[key] = values.Parse(item)
 	}
 }
 
@@ -66,7 +67,7 @@ func (task *Task) Start() {
 
 func (task *Task) init() {
 	if task.OriginDictionary == nil {
-		task.OriginDictionary = make(map[string]Value)
+		task.OriginDictionary = make(map[string]values.Value)
 	}
 	task.Context = NewContext()
 	task.Context.Meta = task.Meta

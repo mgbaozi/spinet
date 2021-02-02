@@ -196,7 +196,7 @@ func NewContextWithDictionary(dictionary map[string]interface{}) Context {
 func (ctx Context) Mapper(mapper Mapper) {
 	for key, value := range mapper {
 		//TODO: super data
-		if v, err := value.Extract(ctx); err == nil {
+		if v, err := value.Extract(ctx.MergedData()); err == nil {
 			ctx.Dictionary[key] = v
 			klog.V(4).Infof("Set value %v to context.dictionary with key %s", v, key)
 		}

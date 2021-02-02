@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/mgbaozi/spinet/pkg/values"
 	"k8s.io/klog/v2"
 	"reflect"
 	"strings"
@@ -9,19 +10,19 @@ import (
 type CustomApp struct {
 	Task
 	DefinedOptions []AppOptionItem
-	options        map[string]Value
+	options        map[string]values.Value
 }
 
 func (custom *CustomApp) New(options map[string]interface{}) App {
 	app := &CustomApp{
 		Task:    custom.Task,
-		options: make(map[string]Value),
+		options: make(map[string]values.Value),
 	}
 	if app.OriginDictionary == nil {
-		app.OriginDictionary = make(map[string]Value)
+		app.OriginDictionary = make(map[string]values.Value)
 	}
 	for key, item := range options {
-		app.options[key] = ParseValue(item)
+		app.options[key] = values.Parse(item)
 	}
 	return app
 }

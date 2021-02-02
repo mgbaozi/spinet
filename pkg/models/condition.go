@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/common/utils"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"k8s.io/klog/v2"
 )
 
 type Condition struct {
 	Operator   Operator
 	Conditions []Condition
-	Values     []Value
+	Values     []values.Value
 }
 
 func (condition Condition) String() string {
@@ -37,7 +38,7 @@ func (condition Condition) Exec(ctx Context) (res interface{}, err error) {
 	var values []interface{}
 	for _, value := range condition.Values {
 		//TODO: super data
-		extracted, err := value.Extract(ctx)
+		extracted, err := value.Extract(ctx.MergedData())
 		if err != nil {
 			return false, err
 		}

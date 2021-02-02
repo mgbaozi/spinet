@@ -1,13 +1,16 @@
 package models
 
-import "k8s.io/klog/v2"
+import (
+	"github.com/mgbaozi/spinet/pkg/values"
+	"k8s.io/klog/v2"
+)
 
-type Mapper map[string]Value
+type Mapper map[string]values.Value
 
 func ParseMapper(data map[string]interface{}) Mapper {
 	mapper := make(Mapper)
 	for key, content := range data {
-		value := ParseValue(content)
+		value := values.Parse(content)
 		mapper[key] = value
 	}
 	return mapper
@@ -16,7 +19,8 @@ func ParseMapper(data map[string]interface{}) Mapper {
 func ProcessMapper(mapper Mapper, variables interface{}) map[string]interface{} {
 	res := make(map[string]interface{})
 	for key, value := range mapper {
-		if v, err := value.Extract(variables); err == nil {
+		//FIXME: force cast will cause crash
+		if v, err := value.Extract(variables.(map[string]interface{})); err == nil {
 			res[key] = v
 			klog.V(4).Infof("Mapper set value %v to key %s", v, key)
 		}

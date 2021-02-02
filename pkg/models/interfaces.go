@@ -2,11 +2,12 @@ package models
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/mgbaozi/spinet/pkg/values"
 )
 
 type Step struct {
 	App          App
-	Mapper       map[string]Value
+	Mapper       map[string]values.Value
 	Conditions   []Condition
 	Dependencies []Step
 }

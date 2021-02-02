@@ -4,6 +4,7 @@ import (
 	"github.com/mgbaozi/spinet/pkg/models"
 	_ "github.com/mgbaozi/spinet/pkg/operators"
 	_ "github.com/mgbaozi/spinet/pkg/triggers"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -81,9 +82,9 @@ func (step Step) Parse() (res models.Step, err error) {
 			res.Dependencies = append(res.Dependencies, dependency)
 		}
 	}
-	res.Mapper = make(map[string]models.Value)
+	res.Mapper = make(map[string]values.Value)
 	for key, value := range step.Mapper {
-		res.Mapper[key] = models.ParseValue(value)
+		res.Mapper[key] = values.Parse(value)
 	}
 	res.App, err = models.NewApp(app, options)
 	return res, err
@@ -95,14 +96,14 @@ func (condition Condition) Parse() models.Condition {
 	for _, item := range condition.Conditions {
 		conditions = append(conditions, item.Parse())
 	}
-	var values []models.Value
+	var vals []values.Value
 	for _, value := range condition.Values {
-		values = append(values, models.ParseValue(value))
+		vals = append(vals, values.Parse(value))
 	}
 	return models.Condition{
 		Operator:   models.NewOperator(name),
 		Conditions: conditions,
-		Values:     values,
+		Values:     vals,
 	}
 }
 
