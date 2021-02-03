@@ -3,6 +3,7 @@ package apps
 import (
 	"context"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"github.com/mitchellh/mapstructure"
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -63,10 +64,11 @@ func (metrics *Metrics) Execute(ctx models.Context, data interface{}) (err error
 		}
 	}()
 	//TODO: query metrics and set into data
+	merged := ctx.MergedData()
 	switch metrics.Datasource {
 	case "prometheus":
-		address, _ := models.ParseValue(metrics.URL).Extract(ctx)
-		query, _ := models.ParseValue(metrics.Query).Extract(ctx)
+		address, _ := values.Parse(metrics.URL).Extract(merged)
+		query, _ := values.Parse(metrics.Query).Extract(merged)
 		client, _ := api.NewClient(api.Config{
 			Address: address.(string),
 		})

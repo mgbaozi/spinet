@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"k8s.io/klog/v2"
@@ -83,9 +84,10 @@ func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 		}
 	}()
 	headers := make(map[string]string)
+	merged := ctx.MergedData()
 	for _, item := range api.Headers {
-		value := models.ParseValue(item.Value)
-		res, err := value.Extract(ctx)
+		value := values.Parse(item.Value)
+		res, err := value.Extract(merged)
 		if err != nil {
 			return err
 		}
@@ -94,12 +96,12 @@ func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	params := make(map[string]interface{})
 	for key, item := range api.Params {
 		var paramKey = key
-		if value, err := models.ParseValue(key).Extract(ctx); err == nil {
+		if value, err := values.Parse(key).Extract(merged); err == nil {
 			if pk, ok := value.(string); ok {
 				paramKey = pk
 			}
 		}
-		if value, err := models.ParseValue(item).Extract(ctx); err != nil {
+		if value, err := values.Parse(item).Extract(merged); err != nil {
 			return err
 		} else {
 			params[paramKey] = value
@@ -107,14 +109,14 @@ func (api *API) Execute(ctx models.Context, data interface{}) (err error) {
 	}
 	var method, url string
 	var ok bool
-	if v, err := models.ParseValue(api.Method).Extract(ctx); err != nil {
+	if v, err := values.Parse(api.Method).Extract(merged); err != nil {
 		return err
 	} else {
 		if method, ok = v.(string); !ok {
 			method = api.Method
 		}
 	}
-	if v, err := models.ParseValue(api.URL).Extract(ctx); err != nil {
+	if v, err := values.Parse(api.URL).Extract(merged); err != nil {
 		return err
 	} else {
 		if url, ok = v.(string); !ok {

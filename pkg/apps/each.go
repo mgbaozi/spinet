@@ -6,6 +6,7 @@ import (
 	"github.com/mgbaozi/spinet/pkg/apis"
 	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 	"k8s.io/klog/v2"
@@ -86,7 +87,7 @@ func (each *Each) executeApps(ctx models.Context, key interface{}, value interfa
 }
 
 func (each *Each) Execute(ctx models.Context, data interface{}) error {
-	collection, err := models.ParseValue(each.Collection).Extract(ctx)
+	collection, err := values.Parse(each.Collection).Extract(ctx.MergedData())
 	if err != nil {
 		return err
 	}

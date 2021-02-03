@@ -3,6 +3,7 @@ package apps
 import (
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/values"
 	"k8s.io/klog/v2"
 )
 
@@ -47,6 +48,6 @@ func (printer *Printer) Execute(ctx models.Context, data interface{}) error {
 
 func (printer *Printer) RenderContent(variables map[string]interface{}) interface{} {
 	klog.V(4).Infof("Render content %v with variables %v", printer.Content, variables)
-	content, _ := models.ParseValue(printer.Content).Extract(variables)
+	content, _ := values.Parse(printer.Content).Extract(variables)
 	return content
 }

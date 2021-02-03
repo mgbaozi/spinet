@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"k8s.io/klog/v2"
 	"strings"
 )
@@ -169,6 +170,21 @@ func (ctx Context) Sub(name string, magic MagicVariables) Context {
 	// }
 	context.SetMagicVariables(magic)
 	return context
+}
+
+func merge(res map[string]interface{}, item interface{}) map[string]interface{} {
+	if dict, ok := item.(map[string]interface{}); ok {
+		for key, value := range dict {
+			res[key] = value
+		}
+	}
+	if list, ok := item.([]interface{}); ok {
+		for index, value := range list {
+			key := fmt.Sprintf("%d", index)
+			res[key] = value
+		}
+	}
+	return res
 }
 
 func (ctx Context) MergedData() map[string]interface{} {

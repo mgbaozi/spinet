@@ -2,6 +2,20 @@ package values
 
 import "k8s.io/klog/v2"
 
+/*
+Data Variables:
+$.__dict__: dictionary data
+$.__app__: app data
+$.__super__: super app data
+$: merged data
+${(.*)}: template (with merged data)
+
+each.app
+$.__super__.__key__ $.__super__.__index__: current index
+$.__super__.__value__: value for current item
+$.__super__.__collection__: hole collection
+*/
+
 type Value interface {
 	New(value map[string]interface{}) Value
 	Parse(str string) Value
@@ -23,6 +37,6 @@ func Parse(content interface{}) Value {
 		klog.V(7).Infof("Value type is map: %v", dict)
 		return value.New(dict)
 	}
-	klog.Errorf("Value %v is neither of string or map, parse failed.", content)
-	return nil
+	klog.V(7).Infof("Value %v is neither of string or map, parse as constant.", content)
+	return &Constant{content}
 }
