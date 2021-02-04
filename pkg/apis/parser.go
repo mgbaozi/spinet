@@ -50,7 +50,7 @@ func (task Task) Parse() (res models.Task, err error) {
 		}
 	}
 	for _, condition := range task.Conditions {
-		res.Conditions = append(res.Conditions, condition.Parse())
+		res.Conditions = append(res.Conditions, values.Parse(condition))
 	}
 	for _, output := range task.Outputs {
 		if item, err := output.Parse(); err != nil {
@@ -73,7 +73,7 @@ func (step Step) Parse() (res models.Step, err error) {
 	app := step.App
 	options := step.Options
 	for _, condition := range step.Conditions {
-		res.Conditions = append(res.Conditions, condition.Parse())
+		res.Conditions = append(res.Conditions, values.Parse(condition))
 	}
 	for _, item := range step.Dependencies {
 		if dependency, err := item.Parse(); err != nil {
@@ -88,23 +88,6 @@ func (step Step) Parse() (res models.Step, err error) {
 	}
 	res.App, err = models.NewApp(app, options)
 	return res, err
-}
-
-func (condition Condition) Parse() models.Condition {
-	name := condition.Operator
-	var conditions []models.Condition
-	for _, item := range condition.Conditions {
-		conditions = append(conditions, item.Parse())
-	}
-	var vals []values.Value
-	for _, value := range condition.Values {
-		vals = append(vals, values.Parse(value))
-	}
-	return models.Condition{
-		Operator:   models.NewOperator(name),
-		Conditions: conditions,
-		Values:     vals,
-	}
 }
 
 func CustomAppFromYaml(content []byte) (CustomApp, error) {

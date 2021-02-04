@@ -19,7 +19,7 @@ type Task struct {
 	Meta       `json:",inline" yaml:",inline"`
 	Dictionary map[string]interface{} `json:"dictionary" yaml:"dictionary"`
 	Triggers   []Trigger              `json:"triggers" yaml:"triggers"`
-	Conditions []Condition            `json:"conditions,omitempty" yaml:"conditions"`
+	Conditions []interface{}          `json:"conditions,omitempty" yaml:"conditions"`
 	Inputs     []Step                 `json:"inputs,omitempty" yaml:"inputs"`
 	Outputs    []Step                 `json:"outputs,omitempty" yaml:"outputs"`
 	Aggregator map[string]interface{} `json:"aggregator,omitempty" yaml:"aggregator"`
@@ -30,17 +30,11 @@ type Trigger struct {
 	Options map[string]interface{} `json:"options" yaml:"options"`
 }
 
-type Condition struct {
-	Operator   string        `json:"operator" yaml:"operator"`
-	Conditions []Condition   `json:"conditions,omitempty" yaml:"conditions"`
-	Values     []interface{} `json:"values" yaml:"values"`
-}
-
 type Step struct {
 	App          string                 `json:"app" yaml:"app"`
 	Options      map[string]interface{} `json:"options" yaml:"options"`
 	Mapper       map[string]interface{} `json:"mapper,omitempty" yaml:"mapper"`
-	Conditions   []Condition            `json:"conditions,omitempty" yaml:"conditions"`
+	Conditions   []interface{}          `json:"conditions,omitempty" yaml:"conditions"`
 	Dependencies []Step                 `json:"dependencies,omitempty" yaml:"dependencies"`
 }
 

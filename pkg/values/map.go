@@ -26,7 +26,7 @@ func (*Map) Type() ValueType {
 	return ValueTypeMap
 }
 
-func (variable *Map) Format() string {
+func (variable *Map) Format() interface{} {
 	return ""
 }
 

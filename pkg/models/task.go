@@ -24,7 +24,7 @@ type Task struct {
 	Meta
 	Triggers   []Trigger
 	Inputs     []Step
-	Conditions []Condition
+	Conditions []values.Value
 	Outputs    []Step
 	Aggregator Mapper
 	// TODO: versioned context

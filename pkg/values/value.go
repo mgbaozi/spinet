@@ -20,7 +20,7 @@ type Value interface {
 	New(value map[string]interface{}) Value
 	Parse(str string) Value
 	Type() ValueType
-	Format() string
+	Format() interface{}
 	Extract(data map[string]interface{}) (interface{}, error)
 }
 

@@ -1,6 +1,9 @@
 package apis
 
-import "github.com/mgbaozi/spinet/pkg/models"
+import (
+	"github.com/mgbaozi/spinet/pkg/models"
+	"github.com/mgbaozi/spinet/pkg/values"
+)
 
 func SerializeTask(task *models.Task) (res Task) {
 	res.Meta = Meta{
@@ -49,15 +52,8 @@ func SerializeStep(step models.Step) (res Step) {
 	return
 }
 
-func SerializeCondition(condition models.Condition) (res Condition) {
-	res.Operator = condition.Operator.Name()
-	for _, condition := range condition.Conditions {
-		res.Conditions = append(res.Conditions, SerializeCondition(condition))
-	}
-	for _, value := range condition.Values {
-		res.Values = append(res.Values, value.Format())
-	}
-	return
+func SerializeCondition(condition values.Value) interface{} {
+	return condition.Format()
 }
 
 func SerializeAppOption(option models.AppOptionItem) (res AppOptionItem) {

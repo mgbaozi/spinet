@@ -20,7 +20,7 @@ func (*Constant) Type() ValueType {
 	return ValueTypeConstant
 }
 
-func (constant *Constant) Format() string {
+func (constant *Constant) Format() interface{} {
 	return ""
 }
 

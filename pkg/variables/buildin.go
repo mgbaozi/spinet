@@ -1,7 +1,6 @@
 package variables
 
 import (
-	"github.com/mgbaozi/spinet/pkg/models"
 	"time"
 )
 
@@ -14,9 +13,11 @@ $RUNTIME: cluster / standalone
 */
 
 func init() {
-	models.RegisterBuildInVariable(BuildInVariableNone{})
-	models.RegisterBuildInVariable(BuildInVariableDate{})
-	models.RegisterBuildInVariable(BuildInVariableTime{})
+	registerAll(
+		BuildInVariableNone{},
+		BuildInVariableDate{},
+		BuildInVariableTime{},
+	)
 }
 
 type BuildInVariableNone struct{}
@@ -25,7 +26,7 @@ func (BuildInVariableNone) Name() string {
 	return "none"
 }
 
-func (BuildInVariableNone) New(interface{}) models.BuildInVariable {
+func (BuildInVariableNone) New(interface{}) BuildInVariable {
 	return BuildInVariableNone{}
 }
 
@@ -37,7 +38,7 @@ type BuildInVariableDate struct {
 	date interface{}
 }
 
-func (BuildInVariableDate) New(value interface{}) models.BuildInVariable {
+func (BuildInVariableDate) New(value interface{}) BuildInVariable {
 	date := time.Now().Format("2006-01-02")
 	return BuildInVariableDate{
 		date: date,
@@ -56,7 +57,7 @@ type BuildInVariableTime struct {
 	time interface{}
 }
 
-func (BuildInVariableTime) New(value interface{}) models.BuildInVariable {
+func (BuildInVariableTime) New(value interface{}) BuildInVariable {
 	t := time.Now().Format(time.RFC3339)
 	return BuildInVariableTime{
 		time: t,

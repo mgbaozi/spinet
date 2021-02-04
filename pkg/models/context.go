@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/mgbaozi/spinet/pkg/variables"
 	"k8s.io/klog/v2"
 	"strings"
 )
@@ -31,7 +32,7 @@ func NewBaseContextWithDictionary(dictionary map[string]interface{}) *BaseContex
 	if dictionary != nil {
 		context.Dictionary = dictionary
 	}
-	context.BuildIn = buildInVariables(nil)
+	context.BuildIn = variables.WithOverride(nil)
 	return context
 }
 

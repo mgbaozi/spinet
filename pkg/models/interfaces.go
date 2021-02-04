@@ -8,7 +8,7 @@ import (
 type Step struct {
 	App          App
 	Mapper       map[string]values.Value
-	Conditions   []Condition
+	Conditions   []values.Value
 	Dependencies []Step
 }
 

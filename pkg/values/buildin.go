@@ -28,7 +28,7 @@ func (*BuildIn) Type() ValueType {
 	return ValueTypeBuildIn
 }
 
-func (variable *BuildIn) Format() string {
+func (variable *BuildIn) Format() interface{} {
 	return ""
 }
 

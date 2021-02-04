@@ -44,7 +44,7 @@ func (*Variable) Type() ValueType {
 	return ValueTypeVariable
 }
 
-func (variable *Variable) Format() string {
+func (variable *Variable) Format() interface{} {
 	return ""
 }
 

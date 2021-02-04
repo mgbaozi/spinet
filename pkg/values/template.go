@@ -26,7 +26,7 @@ func (*Template) Type() ValueType {
 	return ValueTypeTemplate
 }
 
-func (variable *Template) Format() string {
+func (variable *Template) Format() interface{} {
 	return ""
 }
 

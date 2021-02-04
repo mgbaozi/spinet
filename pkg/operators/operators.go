@@ -2,12 +2,11 @@ package operators
 
 import (
 	"errors"
-	"github.com/mgbaozi/spinet/pkg/models"
 	"k8s.io/klog/v2"
 )
 
 func init() {
-	models.RegisterOperators(
+	registerAll(
 		EQ{},
 		Greater{},
 		Less{},
