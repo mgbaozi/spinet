@@ -71,6 +71,14 @@ func detectValueTypeFromMap(content map[string]interface{}) ValueType {
 			return valueType
 		}
 	}
+	if _, ok := content["operator"]; ok {
+		if _, ok := content["values"]; ok {
+			// if value only have operator and values
+			if len(content) == 2 {
+				return ValueTypeExpression
+			}
+		}
+	}
 	return ValueTypeMap
 }
 

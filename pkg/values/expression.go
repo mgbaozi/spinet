@@ -12,7 +12,8 @@ type Expression struct {
 
 func (*Expression) New(value map[string]interface{}) Value {
 	//TODO: type checking
-	operator := operators.New(value["operator"].(string))
+	name := value["operator"].(string)
+	operator := operators.New(name)
 	expression := &Expression{
 		operator: operator,
 	}
@@ -47,6 +48,7 @@ func (variable *Expression) Extract(data map[string]interface{}) (interface{}, e
 	}
 	return variable.operator.Do(values)
 }
+
 func (variable *Expression) String() string {
 	return fmt.Sprintf("Expression [op=%s,values=%v]",
 		variable.operator.Name(), variable.values)
