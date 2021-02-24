@@ -3,11 +3,12 @@ package models
 import (
 	"fmt"
 	"github.com/mgbaozi/spinet/pkg/common/utils"
+	"github.com/mgbaozi/spinet/pkg/operators"
 	"k8s.io/klog/v2"
 )
 
 func (step *Step) processConditions(ctx Context) (bool, error) {
-	return ProcessConditions(ctx, NewOperator("and"), step.Conditions)
+	return ProcessConditions(ctx, operators.New("and"), step.Conditions)
 }
 
 func (step *Step) Process(ctx Context) (res bool, err error) {
@@ -50,6 +51,6 @@ func processSteps(ctx Context, steps []Step) (res bool, err error) {
 		}
 	}
 	var val interface{}
-	val, err = NewOperator("and").Do(dependencyResults)
+	val, err = operators.New("and").Do(dependencyResults)
 	return utils.ToBoolean(val), err
 }

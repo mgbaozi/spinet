@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/mgbaozi/spinet/pkg/operators"
 	"github.com/mgbaozi/spinet/pkg/values"
 	"k8s.io/klog/v2"
 	"reflect"
@@ -88,7 +89,7 @@ func (task *Task) prepare(data map[string]interface{}) {
 
 func (task *Task) processConditions() (bool, error) {
 	//FIXME
-	return ProcessConditions(task.Context, NewOperator("and"), task.Conditions)
+	return ProcessConditions(task.Context, operators.New("and"), task.Conditions)
 }
 
 func (task *Task) Execute() (result map[string]interface{}, err error) {
