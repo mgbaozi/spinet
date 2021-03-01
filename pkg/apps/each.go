@@ -2,7 +2,6 @@ package apps
 
 import (
 	"errors"
-	"fmt"
 	"github.com/mgbaozi/spinet/pkg/apis"
 	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"github.com/mgbaozi/spinet/pkg/models"
@@ -19,7 +18,7 @@ func init() {
 
 type EachOptions struct {
 	Collection interface{}
-	Apps       interface{}
+	Steps      interface{}
 }
 
 type Each struct {
@@ -32,7 +31,7 @@ func NewEach(options map[string]interface{}) *Each {
 	if err := mapstructure.Decode(options, &each.EachOptions); err != nil {
 		klog.V(2).Infof("parse options for app `each` failed with error: %v", err)
 	}
-	yml, _ := yaml.Marshal(each.EachOptions.Apps)
+	yml, _ := yaml.Marshal(each.EachOptions.Steps)
 	var steps []apis.Step
 	if err := yaml.Unmarshal(yml, &steps); err != nil {
 		klog.Errorf("Unmarshal app failed with error: %v", err)
@@ -66,24 +65,15 @@ func (each *Each) Options() (res map[string]interface{}) {
 	return
 }
 
-func (each *Each) executeApps(ctx models.Context, key interface{}, value interface{}, collection interface{}) (results []interface{}, err error) {
+func (each *Each) executeApps(ctx models.Context, key interface{}, value interface{}, collection interface{}) (result interface{}, err error) {
 	klog.V(6).Infof("Execute app with key: %v, value: %v", key, value)
-	for _, step := range each.Steps {
-		var res bool
-		name := fmt.Sprintf("each-%v", key)
-		magic := map[string]interface{}{
-			"__index__":      key,
-			"__key__":        key,
-			"__value__":      value,
-			"__collection__": collection,
-		}
-		if res, err = step.Process(ctx.Sub(name, magic)); err != nil {
-			return
-		} else {
-			results = append(results, res)
-		}
+	magic := map[string]interface{}{
+		"__index__":      key,
+		"__key__":        key,
+		"__value__":      value,
+		"__collection__": collection,
 	}
-	return
+	return models.ProcessSteps(ctx, each.Steps, magic)
 }
 
 func (each *Each) Execute(ctx models.Context, data interface{}) error {
@@ -116,6 +106,6 @@ func (each *Each) Execute(ctx models.Context, data interface{}) error {
 		}
 		return nil
 	}
-	klog.V(6).Infof("Collection is not a list: %v", collection)
+	klog.V(6).Infof("Collection is not iterable: %v", collection)
 	return errors.New("not a collection")
 }

@@ -106,13 +106,13 @@ func (task *Task) Execute() (result map[string]interface{}, err error) {
 	}()
 	task.Context.Trace(true, "task start", nil)
 	klog.V(2).Infof("Running task %s", task.Name)
-	if res, err = processSteps(task.Context.Sub(string(TaskProgressInput), nil), task.Inputs); err != nil || !res {
+	if res, err = ProcessSteps(task.Context.Sub(string(TaskProgressInput), nil), task.Inputs, nil); err != nil || !res {
 		return
 	}
 	if res, err = task.processConditions(); err != nil || !res {
 		return
 	}
-	if res, err = processSteps(task.Context.Sub(string(TaskProgressOutput), nil), task.Outputs); err != nil || !res {
+	if res, err = ProcessSteps(task.Context.Sub(string(TaskProgressOutput), nil), task.Outputs, nil); err != nil || !res {
 		return
 	}
 	// TODO: add output validator

@@ -1,0 +1,26 @@
+kind: task
+name: concurrency-app-example
+
+triggers:
+  - type: timer
+    options:
+      period: 3
+
+inputs: []
+
+outputs:
+  - app: concurrency
+    options:
+      steps:
+        - app: print
+          options:
+            content: "$.__step__"
+        - app: print
+          options:
+            content: "$.__step__"
+        - app: print
+          options:
+            content: "$.__step__"
+        - app: print
+          options:
+            content: "$.__step__"

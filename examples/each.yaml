@@ -19,14 +19,14 @@ outputs:
   - app: each
     options:
       collection: "$.list"
-      apps:
+      steps:
         - app: print
           options:
             content: "$.__value__"
   - app: each
     options:
       collection: "$.map"
-      apps:
+      steps:
         - app: print
           options:
             content: "${{{.__key__}}:{{.__value__}}}"

@@ -78,13 +78,13 @@ func (custom *CustomApp) Execute(ctx Context, data interface{}) (err error) {
 		return err
 	}
 	var res bool
-	if res, err = processSteps(custom.Context.Sub(string(TaskProgressInput), nil), custom.Inputs); err != nil || !res {
+	if res, err = ProcessSteps(custom.Context.Sub(string(TaskProgressInput), nil), custom.Inputs, nil); err != nil || !res {
 		return
 	}
 	if res, err = custom.processConditions(); err != nil || !res {
 		return
 	}
-	if res, err = processSteps(custom.Context.Sub(string(TaskProgressOutput), nil), custom.Outputs); err != nil || !res {
+	if res, err = ProcessSteps(custom.Context.Sub(string(TaskProgressOutput), nil), custom.Outputs, nil); err != nil || !res {
 		return
 	}
 	dict = ProcessMapper(custom.Aggregator, custom.Context.Dictionary)

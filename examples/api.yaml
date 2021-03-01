@@ -33,7 +33,7 @@ inputs:
 conditions:
     # and / or / eq / ne / gt / lt / ge / le / contains / exist / javascript
   - operator: and
-    conditions:
+    values:
       - operator: eq
         values:
           - type: variable

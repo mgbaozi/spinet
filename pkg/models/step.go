@@ -5,6 +5,7 @@ import (
 	"github.com/mgbaozi/spinet/pkg/common/utils"
 	"github.com/mgbaozi/spinet/pkg/operators"
 	"k8s.io/klog/v2"
+	"sync"
 )
 
 func (step *Step) processConditions(ctx Context) (bool, error) {
@@ -19,7 +20,7 @@ func (step *Step) Process(ctx Context) (res bool, err error) {
 		}
 		ctx.Trace(err == nil, "process "+ctx.shader.Key()+" finished", res)
 	}()
-	if res, err := processSteps(ctx, step.Dependencies); err != nil || !res {
+	if res, err := ProcessSteps(ctx, step.Dependencies, nil); err != nil || !res {
 		return res, err
 	}
 	app := step.App
@@ -33,7 +34,7 @@ func (step *Step) Process(ctx Context) (res bool, err error) {
 	return step.processConditions(ctx)
 }
 
-func processSteps(ctx Context, steps []Step) (res bool, err error) {
+func ProcessSteps(ctx Context, steps []Step, vars MagicVariables) (res bool, err error) {
 	ctx.Trace(true, "processing "+ctx.shader.Key(), nil)
 	defer func() {
 		ctx.Trace(err == nil, "process "+ctx.shader.Key()+" finished", res)
@@ -42,7 +43,12 @@ func processSteps(ctx Context, steps []Step) (res bool, err error) {
 	for index := range steps {
 		key := fmt.Sprintf("step-%d", index)
 		magic := map[string]interface{}{
-			"__index__": index,
+			"__step__": index,
+		}
+		if vars != nil {
+			for m, v := range vars {
+				magic[m] = v
+			}
 		}
 		if res, err := steps[index].Process(ctx.Sub(key, magic)); err != nil {
 			return res, err
@@ -50,6 +56,40 @@ func processSteps(ctx Context, steps []Step) (res bool, err error) {
 			dependencyResults = append(dependencyResults, res)
 		}
 	}
+	var val interface{}
+	val, err = operators.New("and").Do(dependencyResults)
+	return utils.ToBoolean(val), err
+}
+
+func ConcurrencyProcessSteps(ctx Context, steps []Step, vars MagicVariables) (res bool, err error) {
+	ctx.Trace(true, "processing "+ctx.shader.Key(), nil)
+	defer func() {
+		ctx.Trace(err == nil, "process "+ctx.shader.Key()+" finished", res)
+	}()
+	var dependencyResults = make([]interface{}, len(steps))
+	var wg sync.WaitGroup
+	for index := range steps {
+		go func(index int) {
+			defer wg.Done()
+			key := fmt.Sprintf("step-%d", index)
+			magic := map[string]interface{}{
+				"__step__": index,
+			}
+			if vars != nil {
+				for m, v := range vars {
+					magic[m] = v
+				}
+			}
+			wg.Add(1)
+			if res, err := steps[index].Process(ctx.Sub(key, magic)); err != nil {
+				dependencyResults[index] = err
+			} else {
+				dependencyResults[index] = res
+			}
+		}(index)
+	}
+	wg.Wait()
+	//FIXME: handle error
 	var val interface{}
 	val, err = operators.New("and").Do(dependencyResults)
 	return utils.ToBoolean(val), err
